@@ -37,9 +37,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'rest_framework', # 用于跨域请求
+    'corsheaders',  # 用于跨域请求
+    'test_api',  # 用于测试跨域请求的app，暂时先不要删
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', # 用于跨域请求
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -48,6 +52,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True # 开启所有来源的跨域支持
 
 ROOT_URLCONF = "server.urls"
 
