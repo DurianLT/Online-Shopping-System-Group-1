@@ -1,1 +1,6 @@
 env
+
+OSSG1/Test/__pycache__
+OSSG1/OSSG1/__pycache__
+
+OSSG1/Test/migrations
