@@ -1,4 +1,4 @@
-from Test.models import UserInfo
+from tadmin.models import UserInfo
 from rest_framework import serializers
 
 

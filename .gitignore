@@ -1,6 +1,9 @@
+# 请将虚拟环境注释在这里
 env
+.venv
 
-OSSG1/Test/__pycache__
+# 数据库迁移文件注释
 OSSG1/OSSG1/__pycache__
+OSSG1/testadmin/__pycache__
 
-OSSG1/Test/migrations
+OSSG1/testadmin/migrations

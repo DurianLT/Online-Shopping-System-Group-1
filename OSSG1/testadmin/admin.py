@@ -1,7 +1,8 @@
 from django.contrib import admin
-from Test.models import UserInfo
+from testadmin.models import UserInfo
 
 admin.site.site_header = '任务管理系统'
+
 
 class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('id', 'username', 'password',)
@@ -10,4 +11,3 @@ class UserInfoAdmin(admin.ModelAdmin):
 
 
 admin.site.register(UserInfo, UserInfoAdmin)
-
