@@ -38,6 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'testadmin', #测试框架使用过的
+
+    # 自定义应用
+    'users', # 用户模块
+    'products', # 商品模块
 ]
 
 MIDDLEWARE = [
