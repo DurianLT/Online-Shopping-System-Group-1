@@ -27,4 +27,7 @@ urlpatterns = [
      path('test/', include('testadmin.urls')),  # 引入testadmin应用的URLs
     path('', ProductListView.as_view(), name='product-list'),
     path('product/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
+
+
+    path('users/', include('users.urls')),
 ]
