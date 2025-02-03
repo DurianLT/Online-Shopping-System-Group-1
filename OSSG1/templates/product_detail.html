@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Detail</title>
+</head>
+<body>
+    <h1>{{ product.name }}</h1>
+    <p>Description: {{ product.description }}</p>
+    <p>SKU: {{ product.sku }}</p>
+    <p>Category: {{ product.category.name }}</p>
+    <p>Price: {{ product.pricing.price }}</p>
+    {% if product.pricing.discount %}
+        <p>Discount: {{ product.pricing.discount }}</p>
+        <p>Discounted Price: {{ product.pricing.price|floatformat:2 }}</p>
+    {% endif %}
+    <h2>Images</h2>
+    <ul>
+        {% for image in product.images.all %}
+            <li><img src="{{ image.url }}" alt="{{ product.name }}" width="200"></li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'product-list' %}">Back to list</a>
+</body>
+</html>

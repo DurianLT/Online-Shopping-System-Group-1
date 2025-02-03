@@ -6,4 +6,12 @@ env
 OSSG1/OSSG1/__pycache__
 OSSG1/testadmin/__pycache__
 
+<<<<<<< Updated upstream
 OSSG1/testadmin/migrations
+=======
+<<<<<<< .merge_file_lTyMep
+OSSG1/testadmin/migrations
+=======
+OSSG1/testadmin/migrations
+>>>>>>> .merge_file_WXR2d2
+>>>>>>> Stashed changes
