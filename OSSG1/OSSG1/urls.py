@@ -17,8 +17,14 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib import admin
+from django.urls import path, include
+
+from products.views import ProductListView, ProductDetailView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
      path('test/', include('testadmin.urls')),  # 引入testadmin应用的URLs
+    path('', ProductListView.as_view(), name='product-list'),
+    path('product/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
 ]
