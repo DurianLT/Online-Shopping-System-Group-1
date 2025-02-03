@@ -132,3 +132,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+
+LOGIN_URL = 'login'  # 需要登录时，未登录用户会跳转到这个URL
+LOGIN_REDIRECT_URL = '/'  # 登录成功后跳转的页面
+LOGOUT_REDIRECT_URL = 'login'  # 退出后跳转到登录页面
