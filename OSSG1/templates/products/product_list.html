@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}商品列表{% endblock %}
+
+{% block content %}
+    <!-- 图片轮播部分 -->
+    <div class="carousel-wrapper mb-8" style="height: 400px; overflow: hidden;">
+        <div class="carousel">
+            <div class="carousel-images">
+                <!-- 使用占位符图片 -->
+                <div class="carousel-item">
+                    <img src="https://via.placeholder.com/1200x400?text=Image+1" alt="Carousel Image 1" class="w-full h-full object-cover">
+                </div>
+                <div class="carousel-item">
+                    <img src="https://via.placeholder.com/1200x400?text=Image+2" alt="Carousel Image 2" class="w-full h-full object-cover">
+                </div>
+                <div class="carousel-item">
+                    <img src="https://via.placeholder.com/1200x400?text=Image+3" alt="Carousel Image 3" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商品列表部分 -->
+    <div class="max-w-7xl mx-auto p-6 my-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for product in products %}
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                    <a href="{% url 'product-detail' product.pk %}">
+                        <div class="relative">
+                            <img src="{{ product.images.first.url }}" alt="{{ product.name }}" class="w-full h-48 object-cover">
+                            <span class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm">
+                                {% if product.pricing.discount %}
+                                    {{ product.pricing.discount }}% OFF
+                                {% else %}
+                                    原价: ¥{{ product.pricing.price }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
+                            <p class="text-gray-600 mt-2">{{ product.description|slice:":100" }}...</p>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

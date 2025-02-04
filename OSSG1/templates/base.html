@@ -1,0 +1,57 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}圣杯王{% endblock %}</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 自定义 CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-gray-50 font-sans leading-normal tracking-normal">
+    <!-- 顶部导航栏 -->
+    <header class="bg-pink-500 text-white">
+        <div class="container mx-auto flex items-center justify-between p-4">
+            <div class="text-2xl font-bold">圣杯王</div>
+            <nav class="space-x-4">
+                <a href="{% url 'product-list' %}" class="hover:text-gray-200">首页</a>
+            </nav>
+            <div>
+                <!-- 登录状态判断 -->
+                {% if user.is_authenticated %}
+                    <span>{{ user.username }} 已登录</span>
+                    <a href="#" class="hover:text-gray-200" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">退出</a>
+
+                    <form id="logout-form" method="POST" action="{% url 'logout' %}" style="display: none;">
+                        {% csrf_token %}
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="hover:text-gray-200">登录</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'register' %}" class="hover:text-gray-200">快速注册</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体内容区域 -->
+    <main class="container mx-auto p-4">
+        <!-- 内容由子模板覆盖 -->
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white mt-4">
+        <div class="container mx-auto text-center p-4">
+            <p>© 2025 圣杯王. 版权所有.</p>
+        </div>
+    </footer>
+</body>
+
+<script src="{% static 'js/carousel.js' %}"></script>
+
+</html>

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - 商品详情{% endblock %}
+
+{% block content %}
+    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6 my-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ product.name }}</h1>
+        <p class="text-gray-700"><strong>Description:</strong> {{ product.description }}</p>
+        <p class="text-gray-700"><strong>SKU:</strong> {{ product.sku }}</p>
+        <p class="text-gray-700"><strong>Category:</strong> {{ product.category.name }}</p>
+        <p class="text-gray-700"><strong>Price:</strong> ¥{{ product.pricing.price }}</p>
+
+        {% if product.pricing.discount %}
+            <p class="text-red-500 font-bold"><strong>Discount:</strong> ¥{{ product.pricing.discount }}</p>
+            <p class="text-green-600 font-bold"><strong>Discounted Price:</strong> ¥{{ product.pricing.price|floatformat:2 }}</p>
+        {% endif %}
+
+        <h2 class="text-2xl font-bold text-gray-800 mt-6">Images</h2>
+        <ul class="grid grid-cols-3 gap-4 mt-4">
+            {% for image in product.images.all %}
+                <li>
+                    <img src="{{ image.url }}" alt="{{ product.name }}" class="rounded-lg shadow-md">
+                </li>
+            {% endfor %}
+        </ul>
+
+        <a href="{% url 'product-list' %}" class="inline-block mt-6 text-pink-500 hover:underline">
+            Back to list
+        </a>
+    </div>
+{% endblock %}

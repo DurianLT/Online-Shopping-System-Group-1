@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'testadmin', #测试框架使用过的
 
     # 自定义应用
     'users', # 用户模块
@@ -137,3 +136,5 @@ AUTH_USER_MODEL = 'users.CustomUser'
 LOGIN_URL = 'login'  # 需要登录时，未登录用户会跳转到这个URL
 LOGIN_REDIRECT_URL = '/'  # 登录成功后跳转的页面
 LOGOUT_REDIRECT_URL = 'login'  # 退出后跳转到登录页面
+
+STATICFILES_DIRS = [BASE_DIR / 'static']
