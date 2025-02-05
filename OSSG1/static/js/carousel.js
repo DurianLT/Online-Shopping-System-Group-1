@@ -7,5 +7,5 @@ function changeImage() {
     document.querySelector('.carousel-images').style.transform = `translateX(-${currentIndex * 100}%)`;
 }
 
-// 每3秒切换一次图片
-setInterval(changeImage, 3000);
+// 每5秒切换一次图片
+setInterval(changeImage, 5000);

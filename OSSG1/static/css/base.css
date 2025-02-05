@@ -1,0 +1,61 @@
+/* 基本样式 */
+body {
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    background-color: #f5f5f5;
+    line-height: 1.6;
+}
+
+/* 页面布局 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 顶部导航栏 */
+.navbar {
+    background-color: #ff6700;
+    padding: 10px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar .navbar-brand {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.navbar .navbar-nav .nav-link {
+    font-size: 16px;
+    color: white;
+}
+
+.navbar .navbar-nav .nav-link:hover {
+    color: #ffe400;
+}
+
+/* 搜索框样式 */
+.navbar .form-control {
+    width: 250px;
+    border-radius: 20px;
+    border: none;
+}
+
+.navbar .form-control:focus {
+    width: 300px;
+    outline: none;
+}
+
+/* 页脚样式 */
+footer {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #333;
+    color: white;
+    text-align: center;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+    .navbar .form-control {
+        width: 180px;
+    }
+}

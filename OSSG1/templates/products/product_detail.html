@@ -1,31 +1,61 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ product.name }} - 商品详情{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/products/product_detail.css' %}">
+{% endblock %}
+
+
 {% block content %}
-    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6 my-6">
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ product.name }}</h1>
-        <p class="text-gray-700"><strong>Description:</strong> {{ product.description }}</p>
-        <p class="text-gray-700"><strong>SKU:</strong> {{ product.sku }}</p>
-        <p class="text-gray-700"><strong>Category:</strong> {{ product.category.name }}</p>
-        <p class="text-gray-700"><strong>Price:</strong> ¥{{ product.pricing.price }}</p>
-
-        {% if product.pricing.discount %}
-            <p class="text-red-500 font-bold"><strong>Discount:</strong> ¥{{ product.pricing.discount }}</p>
-            <p class="text-green-600 font-bold"><strong>Discounted Price:</strong> ¥{{ product.pricing.price|floatformat:2 }}</p>
-        {% endif %}
-
-        <h2 class="text-2xl font-bold text-gray-800 mt-6">Images</h2>
-        <ul class="grid grid-cols-3 gap-4 mt-4">
-            {% for image in product.images.all %}
-                <li>
-                    <img src="{{ image.url }}" alt="{{ product.name }}" class="rounded-lg shadow-md">
-                </li>
-            {% endfor %}
-        </ul>
-
-        <a href="{% url 'product-list' %}" class="inline-block mt-6 text-pink-500 hover:underline">
-            Back to list
-        </a>
+<div class="container">
+    <div class="row mt-4">
+        <!-- 左侧商品图片展示 -->
+        <div class="col-md-5">
+            <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for image in product.images.all %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <img src="{{ image.url }}" class="d-block w-100 rounded" alt="{{ product.name }}">
+                        </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 右侧商品信息 -->
+        <div class="col-md-7">
+            <h1 class="fw-bold">{{ product.name }}</h1>
+            <p class="text-muted">SKU: {{ product.sku }}</p>
+            <p><strong>分类：</strong>{{ product.category.name }}</p>
+            
+            {% if product.pricing.discount %}
+                <p class="text-danger fs-4 fw-bold">折扣价: ¥{{ product.pricing.discount }}</p>
+                <p class="text-muted text-decoration-line-through">原价: ¥{{ product.pricing.price }}</p>
+            {% else %}
+                <p class="text-success fs-4 fw-bold">价格: ¥{{ product.pricing.price }}</p>
+            {% endif %}
+            
+            <div class="d-flex gap-3 mt-3">
+                <button class="btn btn-warning btn-lg">加入购物车</button>
+                <button class="btn btn-danger btn-lg">立即购买</button>
+            </div>
+        </div>
     </div>
+    
+    <!-- 商品详情介绍 -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="fw-bold">商品详情</h2>
+            <p class="text-muted">{{ product.description|linebreaks }}</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
