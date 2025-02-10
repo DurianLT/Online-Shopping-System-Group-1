@@ -4,8 +4,7 @@
 {% block title %}用户登录{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/users/login.css
-' %}">
+<link rel="stylesheet" href="{% static 'css/users/login.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -18,9 +17,11 @@
                     <form method="post">
                         {% csrf_token %}
                         <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">用户名</label>
                             {{ form.username }}
                         </div>
                         <div class="mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">密码</label>
                             {{ form.password }}
                         </div>
                         <div class="d-grid gap-2">
