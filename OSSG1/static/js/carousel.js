@@ -4,7 +4,7 @@ const totalItems = carouselItems.length;
 
 function changeImage() {
     currentIndex = (currentIndex + 1) % totalItems;
-    document.querySelector('.carousel-images').style.transform = `translateX(-${currentIndex * 100}%)`;
+    document.querySelector('.carousel-inner').style.transform = `translateX(-${currentIndex * 100}%)`;
 }
 
 // 每5秒切换一次图片
