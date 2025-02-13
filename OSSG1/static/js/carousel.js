@@ -1,11 +1,12 @@
-let currentIndex = 0;
-const carouselItems = document.querySelectorAll('.carousel-item');
-const totalItems = carouselItems.length;
+document.addEventListener("DOMContentLoaded", function () {
+    const carouselElement = document.querySelector("#carouselExample");
+    const carousel = new bootstrap.Carousel(carouselElement);
 
-function changeImage() {
-    currentIndex = (currentIndex + 1) % totalItems;
-    document.querySelector('.carousel-inner').style.transform = `translateX(-${currentIndex * 100}%)`;
-}
+    carouselElement.addEventListener("mouseenter", function () {
+        carousel.pause(); // 鼠标悬停暂停轮播
+    });
 
-// 每5秒切换一次图片
-setInterval(changeImage, 5000);
+    carouselElement.addEventListener("mouseleave", function () {
+        carousel.cycle(); // 鼠标移开恢复轮播
+    });
+});
