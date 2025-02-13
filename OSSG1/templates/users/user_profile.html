@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}用户中心{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">用户中心</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title">{{ user.username }}</h4>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>注册时间:</strong> {{ user.created_at }}</p>
+            <p><strong>最后更新时间:</strong> {{ user.updated_at }}</p>
+            
+            <!-- 这里可以添加更多的用户信息，如地址、订单等 -->
+            <div class="mt-4">
+                <a href="{% url 'logout' %}" class="btn btn-danger">退出登录</a>
+                <a href="" class="btn btn-primary">编辑个人信息</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
