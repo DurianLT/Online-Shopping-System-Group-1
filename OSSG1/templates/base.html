@@ -83,6 +83,7 @@
                     <li class="nav-item"><a class="nav-link" href="#">所有商品</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">购物车</a></li>
                     {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'user_profile' %}">用户中心</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">我的订单</a></li>
                         <span class="nav-link">欢迎，{{ user.username }}</span>
                         <li class="nav-item">
