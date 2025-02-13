@@ -1,12 +1,25 @@
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
+from .forms import CustomAuthenticationForm
 
 class CustomLoginView(LoginView):
     template_name = 'users/login.html'  # 指定自定义模板
     redirect_authenticated_user = True  # 如果用户已经登录，则自动跳转
 
+    form_class = CustomAuthenticationForm  # 使用自定义的表单
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request  # 传递 request 到表单
+        return kwargs
+
     def get_success_url(self):
         return reverse_lazy('product-list')  # 登录成功后跳转到主页
+
+    def form_invalid(self, form):
+        # 在表单验证失败时返回错误
+        return self.render_to_response(self.get_context_data(form=form))
+
 
 
 from django.urls import reverse_lazy
@@ -17,6 +30,10 @@ class RegisterView(CreateView):
     form_class = CustomUserCreationForm  # 使用自定义的注册表单
     template_name = 'users/register.html'  # 指定注册页面模板
     success_url = reverse_lazy('login')  # 注册成功后跳转到登录页
+
+    def form_invalid(self, form):
+        # 如果表单无效，确保错误信息被传递到模板
+        return self.render_to_response(self.get_context_data(form=form))
 
 from django.views.generic import DetailView
 from django.shortcuts import get_object_or_404
@@ -103,3 +120,60 @@ class UserProfileUpdateView(UpdateView):
         form.instance.email = email
 
         return super().form_valid(form)
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView, CreateView
+from django.urls import reverse_lazy
+from .models import Address
+
+class AddressListView(LoginRequiredMixin, ListView):
+    model = Address
+    template_name = 'users/address_list.html'
+    context_object_name = 'addresses'
+
+    def get_queryset(self):
+        # 只显示当前登录用户的地址
+        return Address.objects.filter(user=self.request.user)
+
+
+from django.views.generic import CreateView
+from .models import Address
+
+class AddressCreateView(LoginRequiredMixin, CreateView):
+    model = Address
+    template_name = 'users/address_form.html'
+    fields = ['address', 'is_default']
+    success_url = reverse_lazy('address_list')
+
+    def form_valid(self, form):
+        # 默认将地址设置为当前用户
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+from django.views.generic import UpdateView
+from .models import Address
+
+class AddressUpdateView(LoginRequiredMixin, UpdateView):
+    model = Address
+    template_name = 'users/address_form.html'
+    fields = ['address', 'is_default']
+    success_url = reverse_lazy('address_list')
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+
+from django.views.generic import DeleteView
+from django.urls import reverse_lazy
+from .models import Address
+
+class AddressDeleteView(LoginRequiredMixin, DeleteView):
+    model = Address
+    template_name = 'users/address_confirm_delete.html'
+    success_url = reverse_lazy('address_list')
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)

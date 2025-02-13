@@ -39,6 +39,8 @@ class BrowsingHistory(models.Model):
 
 
 # 地址信息
+from django.db import models
+
 class Address(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="addresses")
     address = models.TextField()
@@ -46,8 +48,16 @@ class Address(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        # 如果设置为默认地址，则取消用户其他默认地址
+        if self.is_default:
+            # 取消用户之前的默认地址
+            Address.objects.filter(user=self.user, is_default=True).update(is_default=False)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} - {self.address}"
+
 
 
 # 用户订单信息
@@ -80,15 +90,19 @@ class ApiToken(models.Model):
         return f"{self.developer_name} API Token"
 
 
-# 购物车
+from django.db import models
+from products.models import Product  # 假设你的商品模型在这个位置
+
 class Cart(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="cart_items")
-    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, related_name="cart_items")
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name="cart_items")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="cart_items")
+    quantity = models.PositiveIntegerField(default=1)  # 添加数量字段，默认为1
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.name} in Cart"
+        return f"{self.user.username} - {self.product.name} (Quantity: {self.quantity}) in Cart"
+
 
 
 # 用户对商品评价

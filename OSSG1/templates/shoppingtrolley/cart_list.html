@@ -1,18 +1,113 @@
-<!-- shoppingtrolley/cart_detail.html -->
-<h1>购物车</h1>
-{% if cart_items %}
-    <ul>
-        {% for item in cart_items %}
-            <li>
-                {{ item.product.name }} - 数量: {{ item.quantity }} - 添加时间: {{ item.created_at }}
-                <form method="post" action="{% url 'remove_from_cart' item.product.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm">移除</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
-    <a href="">结账</a>
-{% else %}
-    <p>购物车为空</p>
-{% endif %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}购物车{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/shoppingtrolley/cart_detail.css' %}">
+    <style>
+        .cart-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .cart-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+        .cart-item-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-item-details .product-info {
+            flex: 1;
+            padding-left: 10px;
+        }
+        .cart-item-details .product-price {
+            font-weight: bold;
+        }
+        .cart-item-actions {
+            display: flex;
+            gap: 10px; /* Add some space between the buttons */
+        }
+        .cart-item-actions button {
+            width: 40px; /* Fixed width for buttons */
+            height: 40px; /* Fixed height for buttons */
+            font-size: 20px; /* Adjust font size */
+        }
+        .total-price {
+            font-size: 20px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .checkout-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .checkout-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>购物车</h1>
+
+        {% if cart_items %}
+            <div class="cart-items-list">
+                {% for item in cart_items %}
+                    <div class="cart-item">
+                        <div class="cart-item-details d-flex align-items-center">
+                            <!-- 商品图片 -->
+                            <img src="{{ item.product.images.first.url }}" alt="{{ item.product.name }}">
+                            <div class="product-info">
+                                <h5>{{ item.product.name }}</h5>
+                                <p>数量: {{ item.quantity }}</p>
+                                <p>添加时间: {{ item.created_at|date:"Y-m-d H:i" }}</p>
+                                <p class="product-price">
+                                    {% if item.product.pricing.discount %}
+                                        ¥{{ item.product.pricing.discount }} <del class="text-muted">¥{{ item.product.pricing.price }}</del>
+                                    {% else %}
+                                        ¥{{ item.product.pricing.price }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <!-- 商品操作按钮 -->
+                            <div class="cart-item-actions">
+                                <!-- 数量-1按钮 -->
+                                <form method="post" action="{% url 'modify_cart' item.product.id 'subtract' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">-</button>
+                                </form>
+                                <!-- 移除按钮 -->
+                                <button type="submit" class="btn btn-danger btn-sm w-100">移除</button>
+
+                                <!-- 数量+1按钮 -->
+                                <form method="post" action="{% url 'modify_cart' item.product.id 'add' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">+</button>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- 计算总价格 -->
+            <div class="total-price">
+                <p>总价: ¥{{ total_price }}</p>
+            </div>
+
+            <!-- 结账按钮 -->
+            <a href="" class="checkout-btn">结账</a>
+        {% else %}
+            <p>购物车为空</p>
+        {% endif %}
+    </div>
+{% endblock %}

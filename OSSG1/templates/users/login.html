@@ -48,6 +48,11 @@
     .text-links a:hover {
         text-decoration: underline;
     }
+    .error-message {
+        color: red;
+        font-size: 14px;
+        margin-top: 10px;
+    }
 </style>
 {% endblock %}
 
@@ -58,7 +63,7 @@
         <form method="post">
             {% csrf_token %}
             <div class="mb-3 form-group">
-                <div class="form-label">用户名</div>
+                <div class="form-label">用户名或邮箱</div>
                 <div class="input-container">
                     {{ form.username }}
                 </div>
@@ -71,6 +76,17 @@
             </div>
             <button type="submit" class="btn btn-primary btn-login">登录</button>
         </form>
+
+        {% if form.non_field_errors %}
+            <div class="error-message">
+                <ul>
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
         <div class="text-center text-links mt-3">
             <p class="mb-1">没有账号？ <a href="{% url 'register' %}">去注册</a></p>
             <p><a href="{% url 'password_reset_by_username' %}">忘记密码？</a></p>

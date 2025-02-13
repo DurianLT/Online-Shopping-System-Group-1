@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}送货地址{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>我的送货地址</h1>
+    <a href="{% url 'add_address' %}" class="btn btn-primary mb-3">添加新地址</a>
+    {% if addresses %}
+        <ul class="list-group">
+            {% for address in addresses %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <div>
+                        <p>{{ address.address }}</p>
+                        <p>{% if address.is_default %}默认地址{% else %}非默认地址{% endif %}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'edit_address' address.pk %}" class="btn btn-warning btn-sm">编辑</a>
+                        <form method="post" action="{% url 'delete_address' address.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">删除</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>没有添加任何地址。</p>
+    {% endif %}
+</div>
+{% endblock %}
