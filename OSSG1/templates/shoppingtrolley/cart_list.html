@@ -85,7 +85,10 @@
                                     <button type="submit" class="btn btn-outline-warning btn-sm">-</button>
                                 </form>
                                 <!-- 移除按钮 -->
-                                <button type="submit" class="btn btn-danger btn-sm w-100">移除</button>
+                                <form method="post" action="{% url 'modify_cart' item.product.id 'remove' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm w-100">移除</button>
+                                </form>
 
                                 <!-- 数量+1按钮 -->
                                 <form method="post" action="{% url 'modify_cart' item.product.id 'add' %}" style="display:inline;">
@@ -104,8 +107,10 @@
                 <p>总价: ¥{{ total_price }}</p>
             </div>
 
-            <!-- 结账按钮 -->
-            <a href="" class="checkout-btn">结账</a>
+            <a href="{% url 'confirm_order' %}" class="btn btn-primary checkout-btn">结账</a>
+
+
+
         {% else %}
             <p>购物车为空</p>
         {% endif %}

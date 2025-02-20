@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}确认订单{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold">确认订单</h2>
+
+    <!-- 选择收货地址 -->
+    <div class="card p-4 mt-4 shadow-sm">
+        <h4 class="fw-bold">选择收货地址</h4>
+        <form method="post" action="{% url 'order_from_cart' %}">
+            {% csrf_token %}
+
+            {% if addresses %}
+                {% for address in addresses %}
+                    <div class="form-check">
+                        <input type="radio" class="form-check-input" name="address_id" value="{{ address.id }}"
+                               {% if address.is_default %}checked{% endif %}>
+                        <label class="form-check-label">{{ address.address }}</label>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">你还没有添加地址</p>
+                <a href="{% url 'add_address' %}" class="btn btn-primary">添加地址</a>
+            {% endif %}
+            
+            <button type="submit" class="btn btn-success mt-4">提交订单</button>
+        </form>
+    </div>
+
+    <!-- 订单商品信息 -->
+    <div class="card p-4 mt-4 shadow-sm">
+        <h4 class="fw-bold">订单商品</h4>
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>商品</th>
+                    <th>单价</th>
+                    <th>数量</th>
+                    <th>小计</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>¥{{ item.price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>¥{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- 订单总价 -->
+        <div class="text-end mt-3">
+            <h4 class="fw-bold">订单总额: ¥{{ total_price }}</h4>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

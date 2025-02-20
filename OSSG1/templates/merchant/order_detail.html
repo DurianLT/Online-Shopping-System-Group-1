@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}订单详情 - #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold">订单详情</h2>
+
+    <!-- 订单信息 -->
+    <div class="card p-4 mt-3 shadow-sm">
+        <h4>订单编号: #{{ order.id }}</h4>
+        <p><strong>买家:</strong> {{ order.user.username }}</p>
+        <p><strong>创建时间:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
+        <p><strong>订单状态:</strong> 
+            <span class="badge 
+                {% if order.status == 'Pending' %}bg-warning
+                {% elif order.status == 'Paid' %}bg-success
+                {% elif order.status == 'Shipped' %}bg-primary
+                {% elif order.status == 'Completed' %}bg-secondary
+                {% elif order.status == 'Cancelled' %}bg-danger
+                {% endif %}">
+                {{ order.get_status_display }}
+            </span>
+        </p>
+        <p><strong>收货地址:</strong> {{ order.address.address }}</p>
+    </div>
+
+    <!-- 商品列表 -->
+    <div class="card p-4 mt-4 shadow-sm">
+        <h4 class="fw-bold">商品列表</h4>
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>商品</th>
+                    <th>单价</th>
+                    <th>数量</th>
+                    <th>小计</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>¥{{ item.price }}</td>
+                    <td>{{ item.quantity }}</td>
+                   
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 订单状态操作 -->
+    {% if order.status == 'Paid' %}
+        <a href="{% url 'merchant:ship_order' order.id %}" class="btn btn-primary">标记为已发货</a>
+    {% elif order.status == 'Shipped' %}
+        <span class="btn btn-secondary disabled">等待买家确认收货</span>
+    {% elif order.status == 'Completed' %}
+        <span class="btn btn-success disabled">订单已完成</span>
+    {% elif order.status == 'Cancelled' %}
+        <span class="btn btn-danger disabled">订单已取消</span>
+    {% endif %}
+
+
+</div>
+{% endblock %}

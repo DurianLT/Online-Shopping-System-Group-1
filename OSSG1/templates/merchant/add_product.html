@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}添加商品{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold">添加新商品</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="card p-4 mt-4 shadow-sm">
+            <h4 class="fw-bold">商品信息</h4>
+            <div class="mb-3">
+                {{ product_form.as_p }}
+            </div>
+        </div>
+
+        <div class="card p-4 mt-4 shadow-sm">
+            <h4 class="fw-bold">定价信息</h4>
+            <div class="mb-3">
+                {{ pricing_form.as_p }}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success mt-3">提交商品</button>
+        <a href="{% url 'merchant:product_list' %}" class="btn btn-secondary mt-3">取消</a>
+    </form>
+</div>
+{% endblock %}

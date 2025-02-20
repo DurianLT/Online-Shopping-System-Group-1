@@ -12,7 +12,8 @@ class Category(models.Model):
         return self.name
 
 
-# 存储商品信息
+from django.db import models
+
 class Product(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=255)
@@ -24,6 +25,17 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+class ProductAttribute(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="attributes")
+    key = models.CharField(max_length=100, help_text="属性名称 (如: 品牌, 颜色, 型号)")
+    value = models.CharField(max_length=255, help_text="属性值 (如: 百乐, 黑色, FX101)")
+
+    class Meta:
+        unique_together = ('product', 'key')  # 确保同一商品的属性名唯一
+
+    def __str__(self):
+        return f"{self.key}: {self.value}"
 
 
 # 存储商品图片信息

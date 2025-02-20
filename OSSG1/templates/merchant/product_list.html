@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}商品管理{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold">商品管理</h2>
+    <a href="{% url 'merchant:add_product' %}" class="btn btn-primary mb-3">添加商品</a>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>SKU</th>
+                <th>分类</th>
+                <th>价格</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.category.name }}</td>
+                <td>¥{{ product.pricing.price }}</td>
+                <td>
+                    <a href="{% url 'merchant:edit_product' product.id %}" class="btn btn-sm btn-warning">编辑</a>
+                    <a href="{% url 'merchant:delete_product' product.id %}" class="btn btn-sm btn-danger">删除</a>
+                </td>
+
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">暂无商品</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
