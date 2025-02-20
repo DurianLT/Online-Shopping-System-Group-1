@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'users', # 用户模块
     'products', # 商品模块
     'shoppingtrolley',
+    'order',
+    'merchant',
 ]
 
 MIDDLEWARE = [

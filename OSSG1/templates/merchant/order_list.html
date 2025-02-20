@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}订单管理{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold">订单管理</h2>
+
+    <!-- 筛选订单状态 -->
+    <form method="get" class="mb-3">
+        <label for="status">订单状态:</label>
+        <select name="status" id="status" class="form-select w-auto d-inline">
+            <option value="">全部</option>
+            <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>待支付</option>
+            <option value="Paid" {% if status_filter == "Paid" %}selected{% endif %}>已支付</option>
+            <option value="Shipped" {% if status_filter == "Shipped" %}selected{% endif %}>已发货</option>
+            <option value="Completed" {% if status_filter == "Completed" %}selected{% endif %}>已完成</option>
+            <option value="Cancelled" {% if status_filter == "Cancelled" %}selected{% endif %}>已取消</option>
+        </select>
+        <button type="submit" class="btn btn-primary">筛选</button>
+    </form>
+
+    <!-- 订单列表 -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>订单编号</th>
+                <th>买家</th>
+                <th>总金额</th>
+                <th>状态</th>
+                <th>下单时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.user.username }}</td>
+                <td>¥{{ order.total_amount }}</td>
+                <td>
+                    <span class="badge 
+                        {% if order.status == 'Pending' %}bg-warning
+                        {% elif order.status == 'Paid' %}bg-success
+                        {% elif order.status == 'Shipped' %}bg-primary
+                        {% elif order.status == 'Completed' %}bg-secondary
+                        {% elif order.status == 'Cancelled' %}bg-danger
+                        {% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <a href="{% url 'merchant:order_detail' order.id %}" class="btn btn-sm btn-info">查看详情</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">暂无订单</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

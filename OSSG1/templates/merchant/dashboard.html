@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}商家管理后台{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold">商家管理后台</h2>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm">
+                <h5>商品管理</h5>
+                <p>您当前有 {{ products.count }} 件商品</p>
+                <a href="{% url 'merchant:product_list' %}" class="btn btn-primary">管理商品</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm">
+                <h5>订单管理</h5>
+                <p>待处理订单: {{ pending_orders }}</p>
+                <p>累计销售额: ¥{{ total_sales }}</p>
+                <a href="{% url 'merchant:order_list' %}" class="btn btn-primary">查看订单</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

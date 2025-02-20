@@ -84,7 +84,8 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'cart_list' %}">购物车</a></li>
                     {% if user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'user_profile' %}">用户中心</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">我的订单</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">我的订单</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'address_list' %}">送货地址</a></li>
                         <span class="nav-link">欢迎，{{ user.username }}</span>
                         <li class="nav-item">
                             <a href="#" class="nav-link" onclick="document.getElementById('logout-form').submit(); return false;">

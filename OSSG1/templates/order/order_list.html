@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}我的订单{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold">我的订单</h2>
+
+    {% if orders %}
+        <div class="table-responsive mt-4">
+            <table class="table table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>订单编号</th>
+                        <th>商家</th>
+                        <th>总金额</th>
+                        <th>状态</th>
+                        <th>下单时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.seller.username }}</td>
+                        <td>¥{{ order.total_amount }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if order.status == 'Pending' %}bg-warning
+                                {% elif order.status == 'Paid' %}bg-success
+                                {% elif order.status == 'Shipped' %}bg-primary
+                                {% elif order.status == 'Completed' %}bg-secondary
+                                {% elif order.status == 'Cancelled' %}bg-danger
+                                {% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-info">查看详情</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-muted mt-4">暂无订单。</p>
+    {% endif %}
+</div>
+{% endblock %}
