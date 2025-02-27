@@ -6,7 +6,7 @@
 <div class="container mt-5">
     <h2 class="fw-bold">添加新商品</h2>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="card p-4 mt-4 shadow-sm">
@@ -14,6 +14,19 @@
             <div class="mb-3">
                 {{ product_form.as_p }}
             </div>
+        </div>
+
+        <div class="card p-4 mt-4 shadow-sm">
+            <h4 class="fw-bold">商品图片</h4>
+            <div class="mb-3" id="image-container">
+                <div class="image-item" id="image-1-container">
+                    <label for="images">上传图片 (主图)</label>
+                    <input type="file" name="images" id="image-1" class="form-control" required>
+                    <button type="button" class="btn btn-danger btn-sm" style="display: none;" disabled>删除</button>
+                    <span>主图</span>  <!-- 标明这是主图 -->
+                </div>
+            </div>
+            <button type="button" class="btn btn-info" id="add-image-btn">添加更多图片</button>
         </div>
 
         <div class="card p-4 mt-4 shadow-sm">
@@ -27,4 +40,32 @@
         <a href="{% url 'merchant:product_list' %}" class="btn btn-secondary mt-3">取消</a>
     </form>
 </div>
+
+<script>
+    let imageCount = 1;
+
+    document.getElementById("add-image-btn").addEventListener("click", function() {
+        imageCount++;
+        
+        // 创建新的图片上传输入框
+        const newImageItem = document.createElement("div");
+        newImageItem.classList.add("image-item");
+        newImageItem.setAttribute("id", `image-${imageCount}-container`);
+        newImageItem.innerHTML = `
+            <label for="images">上传图片</label>
+            <input type="file" name="images" id="image-${imageCount}" class="form-control" required>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeImage(${imageCount})">删除</button>
+        `;
+        
+        // 将新元素加入到图片容器中
+        document.getElementById("image-container").appendChild(newImageItem);
+    });
+
+    // 删除图片上传框
+    function removeImage(imageId) {
+        const imageContainer = document.getElementById(`image-${imageId}-container`);
+        imageContainer.remove();
+    }
+</script>
+
 {% endblock %}

@@ -22,9 +22,12 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    hidden = models.BooleanField(default=False)  # 新增隐藏状态，默认为不隐藏
+    is_physical = models.BooleanField(default=True)  # 新增是否为实体商品，默认为实体商品
 
     def __str__(self):
         return self.name
+
 
 class ProductAttribute(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="attributes")
@@ -41,12 +44,13 @@ class ProductAttribute(models.Model):
 # 存储商品图片信息
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
-    url = models.URLField(max_length=255)
+    image = models.ImageField(upload_to='product_images/', default='default_image.jpg')  # 手动定义一个默认图片路径
     is_primary = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Image of {self.product.name}"
+
 
 
 # 存储商品定价信息

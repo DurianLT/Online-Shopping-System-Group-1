@@ -70,6 +70,8 @@ class Order(models.Model):
         ('Shipped', '已发货'),
         ('Completed', '已完成'),
         ('Cancelled', '已取消'),
+        ('Refunding', '退款中'),  # 新增退款中状态
+        ('Refunded', '已退款'),  # 新增已退款状态
     ]
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="orders")  # 购买者
@@ -82,6 +84,7 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.id} - {self.status} - {self.seller.username}"
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
@@ -122,15 +125,20 @@ class Cart(models.Model):
 
 
 # 用户对商品评价
+
 class Review(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="reviews")
-    rating = models.IntegerField()
-    comment = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, related_name="reviews", null=True, blank=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="reviews", null=True, blank=True)
+    parent_review = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name="replies")  # 回复的评价
+    author_type = models.CharField(max_length=10, choices=[("buyer", "Buyer"), ("seller", "Seller")], default="buyer")
+    rating = models.IntegerField()  # 评分 1-5
+    comment = models.TextField()  # 评价内容
+    created_at = models.DateTimeField(auto_now_add=True)  # 评价创建时间
+    updated_at = models.DateTimeField(auto_now=True)  # 评价更新时间
 
     def __str__(self):
-        return f"Review {self.id} - {self.rating} stars"
+        return f"Review by {self.user.username} on Order Item {self.order_item.id} - {self.rating} Stars"
+
 
 
 # 收藏

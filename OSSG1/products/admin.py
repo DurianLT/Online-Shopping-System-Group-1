@@ -22,12 +22,21 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ('product', 'url', 'is_primary', 'created_at')  # 显示的字段
-    list_filter = ('product', 'is_primary')  # 过滤器
+    list_display = ('product', 'image_preview', 'is_primary', 'created_at')
+
+    # 如果你想在 admin 中显示图片预览
+    def image_preview(self, obj):
+        return f'<img src="{obj.image.url}" width="50" />'
+
+    image_preview.allow_tags = True  # 允许返回 HTML 标签
+
+
+admin.site.register(ProductImage, ProductImageAdmin)
 
 
 class PricingAdmin(admin.ModelAdmin):
-    list_display = ('product', 'price', 'discount', 'discount_start_date', 'discount_end_date', 'created_at', 'updated_at')  # 显示的字段
+    list_display = (
+    'product', 'price', 'discount', 'discount_start_date', 'discount_end_date', 'created_at', 'updated_at')  # 显示的字段
     list_filter = ('product', 'discount')  # 过滤器
 
 
@@ -39,5 +48,4 @@ class CategoryAdmin(admin.ModelAdmin):
 # 注册模型到 Django Admin
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
-admin.site.register(ProductImage, ProductImageAdmin)
 admin.site.register(Pricing, PricingAdmin)

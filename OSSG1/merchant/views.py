@@ -17,7 +17,8 @@ def merchant_required(view_func):
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from merchant.decorators import merchant_required
-from products.models import Product
+from products.models import Product, ProductImage
+
 
 @login_required
 @merchant_required
@@ -26,8 +27,8 @@ def merchant_dashboard(request):
     products = Product.objects.filter(user=request.user)
     orders = Order.objects.filter(seller=request.user)
 
-    total_sales = sum(order.total_amount for order in orders if order.status == "Completed")
-    pending_orders = orders.filter(status="Pending").count()
+    total_sales = sum(order.total_amount for order in orders if order.status == "Shipped")
+    pending_orders = orders.filter(status="Paid").count()
 
     return render(request, "merchant/dashboard.html", {
         "products": products,
@@ -50,6 +51,14 @@ def product_list(request):
     products = Product.objects.filter(user=request.user)
     return render(request, "merchant/product_list.html", {"products": products})
 
+
+
+from django.shortcuts import render, redirect
+from django.forms import modelformset_factory
+from .forms import ProductForm, ProductImageForm
+from django.contrib import messages
+
+
 @login_required
 @merchant_required
 def add_product(request):
@@ -59,13 +68,28 @@ def add_product(request):
         pricing_form = PricingForm(request.POST)
 
         if product_form.is_valid() and pricing_form.is_valid():
+            # 保存商品信息
             product = product_form.save(commit=False)
             product.user = request.user  # 设置商家为当前用户
             product.save()
 
+            # 保存定价信息
             pricing = pricing_form.save(commit=False)
             pricing.product = product
             pricing.save()
+
+            # 处理图片上传
+            images = request.FILES.getlist('images')  # 获取上传的多个文件
+            is_primary_set = False  # 用来标记是否已经设置了主图
+
+            for index, image in enumerate(images):
+                product_image = ProductImage(product=product, image=image)
+                if not is_primary_set:  # 如果还没有设置主图，将第一张图片设为主图
+                    product_image.is_primary = True
+                    is_primary_set = True
+                else:
+                    product_image.is_primary = False  # 后续图片不设为主图
+                product_image.save()
 
             messages.success(request, "商品添加成功！")
             return redirect("merchant:product_list")
@@ -78,6 +102,7 @@ def add_product(request):
         "product_form": product_form,
         "pricing_form": pricing_form
     })
+
 
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -116,6 +141,7 @@ from merchant.decorators import merchant_required
 from products.models import Product, Pricing
 from merchant.forms import ProductForm, PricingForm
 
+
 @login_required
 @merchant_required
 def edit_product(request, product_id):
@@ -127,9 +153,42 @@ def edit_product(request, product_id):
         product_form = ProductForm(request.POST, instance=product)
         pricing_form = PricingForm(request.POST, instance=pricing)
 
+        # 处理删除图片
+        if 'delete_image' in request.POST:
+            image_id = request.POST['delete_image']
+            product_image = get_object_or_404(ProductImage, id=image_id, product=product)
+            product_image.delete()
+            messages.success(request, "图片已删除！")
+            return redirect("merchant:product_list")
+
         if product_form.is_valid() and pricing_form.is_valid():
+            # 保存商品信息
             product_form.save()
             pricing_form.save()
+
+            # 处理主图替换
+            primary_image_id = request.POST.get('primary_image')
+            if primary_image_id:
+                # 如果选择了主图，确保选择的是已有图片
+                if primary_image_id.startswith('new-'):
+                    # 新上传的图片设置为主图
+                    product.images.exclude(is_primary=True).update(is_primary=False)
+                    new_image = ProductImage.objects.last()  # 获取最近上传的图片
+                    new_image.is_primary = True
+                    new_image.save()
+                else:
+                    primary_image = get_object_or_404(ProductImage, id=primary_image_id, product=product)
+                    # 更新主图
+                    product.images.exclude(id=primary_image.id).update(is_primary=False)
+                    primary_image.is_primary = True
+                    primary_image.save()
+
+            # 处理上传的图片
+            images = request.FILES.getlist('images')  # 获取上传的多张图片
+            for image in images:
+                product_image = ProductImage(product=product, image=image)
+                product_image.save()
+
             messages.success(request, "商品信息已更新！")
             return redirect("merchant:product_list")
 
@@ -142,6 +201,7 @@ def edit_product(request, product_id):
         "pricing_form": pricing_form,
         "product": product,
     })
+
 
 
 @login_required
@@ -173,3 +233,5 @@ def delete_product(request, product_id):
         return redirect("merchant:product_list")
 
     return render(request, "merchant/delete_product.html", {"product": product})
+
+

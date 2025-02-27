@@ -52,11 +52,6 @@ class CartAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'product__name')
 
 
-# 用户对商品评价的管理
-class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('order', 'rating', 'created_at', 'updated_at')
-    list_filter = ('order', 'rating', 'created_at', 'updated_at')
-    search_fields = ('order__sku',)
 
 
 # 用户收藏商品的管理
@@ -74,5 +69,5 @@ admin.site.register(Address, AddressAdmin)
 # admin.site.register(Order, OrderAdmin)
 admin.site.register(ApiToken, ApiTokenAdmin)
 admin.site.register(Cart, CartAdmin)
-admin.site.register(Review, ReviewAdmin)
+
 admin.site.register(Wishlist, WishlistAdmin)

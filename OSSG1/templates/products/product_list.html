@@ -68,7 +68,7 @@
                 <div class="col">
                     <div class="card h-100">
                         <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
-                            <img src="{{ product.images.first.url }}" class="card-img-top" alt="{{ product.name }}">
+                            <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
                             <div class="card-body">
                                 <h5 class="card-title text-dark">{{ product.name }}</h5>
                                 <p class="card-text text-muted">{{ product.description|slice:":50" }}...</p>
