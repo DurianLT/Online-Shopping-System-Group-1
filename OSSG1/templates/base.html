@@ -82,6 +82,7 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" href="#">所有商品</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'cart_list' %}">购物车</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'wishlist' %}">收藏夹</a></li>
                     {% if user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'user_profile' %}">用户中心</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">我的订单</a></li>
@@ -100,8 +101,8 @@
                         <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">注册</a></li>
                     {% endif %}
                 </ul>
-                <form class="d-flex" action="#" method="GET">
-                    <input class="form-control me-2" type="search" name="q" placeholder="搜索商品">
+                <form class="d-flex" action="{% url 'product_search' %}" method="GET">
+                    <input class="form-control me-2" type="search" name="q" placeholder="搜索商品" value="{{ request.GET.q }}">
                     <button class="btn btn-outline-light" type="submit">搜索</button>
                 </form>
             </div>
