@@ -4,7 +4,6 @@
 {% block title %}商品列表{% endblock %}
 
 {% block extra_head %}
-
     <link rel="stylesheet" href="{% static 'css/products/product_list.css' %}">
     <style>
         /* 轮播图样式 */
@@ -38,7 +37,6 @@
     </style>
 {% endblock %}
 
-
 {% block content %}
     <!-- 轮播图部分 -->
     <div id="carouselExample" class="carousel slide mb-4" data-bs-ride="carousel" data-bs-interval="5000">
@@ -63,9 +61,9 @@
 
     <!-- 商品列表 -->
     <div class="container">
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4" id="product-list">
             {% for product in products %}
-                <div class="col">
+                <div class="col product-item">
                     <div class="card h-100">
                         <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
                             <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
@@ -85,22 +83,70 @@
                 </div>
             {% endfor %}
         </div>
+
+        <div id="loading" style="display:none;">正在加载...</div>
+        <div id="end-message" style="display:none;">到底了QAQ~</div>
     </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const carouselElement = document.querySelector("#carouselExample");
-        const carousel = new bootstrap.Carousel(carouselElement);
+    let currentPage = 1;
+let loading = false;
 
-        carouselElement.addEventListener("mouseenter", function () {
-            carousel.pause(); // 鼠标悬停暂停轮播
-        });
+// 检查是否滚动到页面底部
+window.addEventListener('scroll', function () {
+    if (loading) return;
 
-        carouselElement.addEventListener("mouseleave", function () {
-            carousel.cycle(); // 鼠标移开恢复轮播
+    // 判断滚动位置
+    if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
+        loadMoreProducts();
+    }
+});
+
+// 加载更多商品
+function loadMoreProducts() {
+    loading = true;
+    document.getElementById('loading').style.display = 'block';  // 显示加载提示
+
+    // 通过当前页码请求数据
+    fetch(`/api/products/?page=${currentPage + 1}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.products.length > 0) {
+                // 当前页码加 1
+                currentPage += 1;
+
+                const productList = document.getElementById('product-list');
+                data.products.forEach(product => {
+                    const productHTML = `
+                        <div class="col product-item">
+                            <div class="card h-100">
+                                <a href="/product/${product.id}" class="text-decoration-none">
+                                    <img src="${product.image_url}" class="card-img-top" alt="${product.name}">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-dark">${product.name}</h5>
+                                        <p class="card-text text-muted">${product.description.slice(0, 50)}...</p>
+                                        <p class="text-danger fw-bold">${product.price}</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    productList.insertAdjacentHTML('beforeend', productHTML);
+                });
+            } else {
+                // 如果没有更多商品，显示"到底了"
+                document.getElementById('end-message').style.display = 'block';
+            }
+            document.getElementById('loading').style.display = 'none';  // 隐藏加载提示
+            loading = false;
+        })
+        .catch(error => {
+            console.error("加载商品时出错:", error);
+            document.getElementById('loading').style.display = 'none';
+            loading = false;
         });
-    });
+}
 </script>
-    
 {% endblock %}

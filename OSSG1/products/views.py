@@ -1,19 +1,39 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 
-# Create your views here.
 from django.views.generic import ListView, DetailView
 
 from users.models import Wishlist
 from .models import Product
 
+from django.core.paginator import Paginator
+
 class ProductListView(ListView):
     model = Product
-    template_name = 'products/product_list.html'  # 指定模板
-    context_object_name = 'products'  # 上下文变量名
+    template_name = 'product_list.html'  # 显示产品的模板
+    context_object_name = 'products'
+    paginate_by = 8  # 每页8个商品
 
-    # 重写get_queryset来过滤掉 hidden=True 的商品
     def get_queryset(self):
-        return Product.objects.filter(hidden=False)
+        queryset = Product.objects.all().filter(hidden=False).order_by('name')  # 添加排序
+
+        # 基于三级分类筛选
+        level3_id = self.kwargs.get('level3_id')
+        if level3_id:
+            queryset = queryset.filter(category_level3_id=level3_id)
+
+        # 如果没有选择三级分类，允许选择一级或二级分类
+        level2_id = self.kwargs.get('level2_id')
+        if level2_id:
+            queryset = queryset.filter(category_level2_id=level2_id)
+
+        level1_id = self.kwargs.get('level1_id')
+        if level1_id:
+            queryset = queryset.filter(category_level1_id=level1_id)
+
+        return queryset
+
+
 
 
 from django.shortcuts import redirect
@@ -109,3 +129,99 @@ class ProductSearchView(ListView):
             )
         else:
             return Product.objects.all()  # 如果没有输入搜索条件，则返回所有商品
+
+from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3
+
+class CategoryLevel1ListView(ListView):
+    model = CategoryLevel1
+    template_name = 'products/category_list.html'
+    context_object_name = 'categories'
+
+class CategoryLevel2ListView(ListView):
+    model = CategoryLevel2
+    template_name = 'products/category_list.html'
+    context_object_name = 'categories'
+
+    def get_queryset(self):
+        parent_id = self.kwargs['level1_id']
+        return CategoryLevel2.objects.filter(parent_id=parent_id)
+
+class CategoryLevel3ListView(ListView):
+    model = CategoryLevel3
+    template_name = 'products/category_list.html'
+    context_object_name = 'categories'
+
+    def get_queryset(self):
+        parent_id = self.kwargs['level2_id']
+        return CategoryLevel3.objects.filter(parent_id=parent_id)
+    
+from django.shortcuts import render, get_object_or_404
+from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3, Product
+
+def category_detail(request, category_id, level=1):
+    if level == 1:
+        category = get_object_or_404(CategoryLevel1, pk=category_id)
+        products = Product.objects.filter(category_level1=category)
+    elif level == 2:
+        category = get_object_or_404(CategoryLevel2, pk=category_id)
+        products = Product.objects.filter(category_level2=category)
+    elif level == 3:
+        category = get_object_or_404(CategoryLevel3, pk=category_id)
+        products = Product.objects.filter(category_level3=category)
+    
+    return render(request, 'products/category_detail.html', {'category': category, 'products': products})
+
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.views.generic import ListView
+from .models import Product, Pricing
+
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.views.generic import ListView
+from .models import Product, Pricing
+
+class ProductListApiView(ListView):
+    model = Product
+    context_object_name = 'products'
+
+    def get(self, request, *args, **kwargs):
+        page_number = request.GET.get('page', 1)
+        products = Product.objects.all().filter(hidden=False)  # 获取未隐藏的商品
+
+        paginator = Paginator(products, 8)  # 每页 8 个商品
+        page_obj = paginator.get_page(page_number)
+
+        products_data = []
+        for product in page_obj:
+            # 获取商品的定价信息
+            try:
+                pricing = product.pricing  # 尝试获取关联的定价信息
+                price = pricing.price
+                discount = pricing.discount
+                discount_start_date = pricing.discount_start_date
+                discount_end_date = pricing.discount_end_date
+            except Pricing.DoesNotExist:
+                price = 'N/A'
+                discount = 'N/A'
+                discount_start_date = None
+                discount_end_date = None
+
+            products_data.append({
+                'id': product.id,
+                'name': product.name,
+                'image_url': product.images.first().image.url if product.images.first() else '',  # 图片链接
+                'description': product.description,
+                'price': price,  # 处理定价缺失
+                'discount': discount,  # 处理折扣缺失
+                'discount_start_date': discount_start_date,  # 折扣开始日期
+                'discount_end_date': discount_end_date,  # 折扣结束日期
+            })
+
+        return JsonResponse({'products': products_data})
+
+
+

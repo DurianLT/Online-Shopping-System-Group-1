@@ -40,6 +40,47 @@
             color: #ffe400;
         }
 
+        /* 一级菜单：默认隐藏 */
+        .navbar .dropdown-menu {
+            min-width: 200px;
+            display: none; /* 默认隐藏 */
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* 鼠标悬停在一级菜单时显示对应的二级菜单 */
+        .navbar .dropdown:hover > .dropdown-menu {
+            display: block;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 二级菜单：默认隐藏 */
+        .dropdown-submenu .dropdown-menu {
+            left: 100%; /* 二级菜单偏移 */
+            top: 0;
+            display: none; /* 默认隐藏 */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        /* 鼠标悬停在二级菜单时显示对应的三级菜单 */
+        .dropdown-submenu:hover > .dropdown-menu {
+            display: block;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 子菜单样式 */
+        .dropdown-submenu {
+            position: relative;
+        }
+
         /* 搜索框样式 */
         .navbar .form-control {
             width: 250px;
@@ -81,6 +122,33 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url 'product-list' %}">所有商品</a></li>
+
+                    <!-- 商品分类下拉菜单 -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" id="categoryDropdown" aria-expanded="false">
+                            商品分类
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+                            {% for category1 in categories %}
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{% url 'category_detail' category1.id %}">{{ category1.name }}</a>
+                                    <ul class="dropdown-menu">
+                                        {% for category2 in category1.subcategories.all %}
+                                            <li class="dropdown-submenu">
+                                                <a class="dropdown-item" href="{% url 'category_level2_detail' category2.id %}">{{ category2.name }}</a>
+                                                <ul class="dropdown-menu">
+                                                    {% for category3 in category2.subcategories.all %}
+                                                        <li><a class="dropdown-item" href="{% url 'category_level3_detail' category3.id %}">{{ category3.name }}</a></li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    
                     <li class="nav-item"><a class="nav-link" href="{% url 'cart_list' %}">购物车</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'wishlist' %}">收藏夹</a></li>
                     {% if user.is_authenticated %}
@@ -108,7 +176,7 @@
             </div>
         </div>
     </nav>
-    
+
     <div class="container mt-4">
         {% if messages %}
             {% for message in messages %}
@@ -126,11 +194,7 @@
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        
-    </script>
-    {% block extra_js %}
-    
-    {% endblock %}
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
