@@ -4,15 +4,17 @@ env
 
 # 数据库迁移文件注释
 OSSG1/OSSG1/__pycache__
-OSSG1/testadmin/__pycache__
 OSSG1/products/__pycache__
 OSSG1/users/__pycache__
 OSSG1/shoppingtrolley/__pycache__
 OSSG1/merchant/__pycache__
 OSSG1/order/__pycache__
 
-OSSG1/testadmin/migrations
 OSSG1/products/migrations
 OSSG1/users/migrations
+OSSG1/shoppingtrolley/migrations
+OSSG1/merchant/migrations
+OSSG1/order/_migrations
 
+# 静态资源注释
 OSSG1/media
