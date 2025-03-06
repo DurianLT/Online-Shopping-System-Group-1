@@ -77,6 +77,37 @@
     .btn-group .btn {
         flex-grow: 1;
     }
+    
+    /* 添加收藏按钮表单样式 */
+    .form-wishlist {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-wishlist {
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 8px;
+        width: 100%;
+        padding: 12px;
+    }
+
+    .btn-wishlist-add {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-wishlist-remove {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-wishlist:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+    
 </style>
 {% endblock %}
 
@@ -89,7 +120,7 @@
                 <div class="carousel-inner">
                     {% for image in product.images.all %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            <img src="{{ product.images.first.image.url }}" class="d-block w-100 rounded" alt="{{ product.name }}">
+                            <img src="{{ image.image.url }}" class="d-block w-100 rounded" alt="{{ product.name }}">
                         </div>
                     {% endfor %}
                 </div>
@@ -146,8 +177,26 @@
                     <button type="submit" class="btn btn-danger btn-lg">立即购买</button>
                 </form>
             </div>
+        
+            <!-- 收藏按钮表单 -->
+            <form method="post" class="form-wishlist">
+                {% csrf_token %}
+                {% if user.is_authenticated %}
+                    {% if is_in_wishlist %}
+                        <button type="submit" name="remove_from_wishlist" class="btn btn-wishlist btn-wishlist-remove">取消收藏</button>
+                    {% else %}
+                        <button type="submit" name="add_to_wishlist" class="btn btn-wishlist btn-wishlist-add">添加收藏</button>
+                    {% endif %}
+                {% else %}
+                    <p><a href="{% url 'login' %}">请登录后收藏商品</a></p>
+                {% endif %}
+            </form>
+        
+        
         </div>
     </div>
+
+
 
     <!-- 商品详情介绍 -->
     <div class="row mt-5">

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}我的收藏{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="fw-bold mt-5">我的收藏夹</h1>
+
+    {% if wishlist_items %}
+        <div class="row mt-4">
+            {% for item in wishlist_items %}
+                <div class="col">
+                    <div class="card h-100">
+                        <a href="{% url 'product-detail' item.product.pk %}" class="text-decoration-none">
+                            <img src="{{ item.product.images.first.image.url }}" class="card-img-top" alt="{{ item.product.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title text-dark">{{ item.product.name }}</h5>
+                                <p class="card-text text-muted">{{ item.product.description|slice:":50" }}...</p>
+                                <p class="text-danger fw-bold">
+                                    {% if item.product.pricing.discount %}
+                                        ¥{{ item.product.pricing.price }} <del class="text-muted">¥{{ item.product.pricing.discount }}</del>
+                                    {% else %}
+                                        ¥{{ item.product.pricing.price }}
+                                    {% endif %}
+                                </p>
+                                <form method="post" action="{% url 'remove_from_wishlist' pk=item.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">移除收藏</button>
+                                </form>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>您还没有收藏任何商品。</p>
+    {% endif %}
+</div>
+{% endblock %}
