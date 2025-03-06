@@ -14,7 +14,7 @@ OSSG1/products/migrations
 OSSG1/users/migrations
 OSSG1/shoppingtrolley/migrations
 OSSG1/merchant/migrations
-OSSG1/order/_migrations
+OSSG1/order/migrations
 
 # 静态资源注释
 OSSG1/media
