@@ -63,9 +63,11 @@
                     <div class="cart-item">
                         <div class="cart-item-details d-flex align-items-center">
                             <!-- 商品图片 -->
-                            <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
+                            <a href="{% url 'product-detail' item.product.id %}">
+                                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
+                            </a>
                             <div class="product-info">
-                                <h5>{{ item.product.name }}</h5>
+                                <h5><a href="{% url 'product-detail' item.product.id %}" class="text-decoration-none text-dark">{{ item.product.name }}</a></h5>
                                 <p>数量: {{ item.quantity }}</p>
                                 <p>添加时间: {{ item.created_at|date:"Y-m-d H:i" }}</p>
                                 <p class="product-price">
