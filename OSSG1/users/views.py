@@ -1,7 +1,25 @@
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from .forms import CustomAuthenticationForm
+from django.views.generic import CreateView
+from .forms import CustomUserCreationForm
+from django.views.generic import DetailView
+from django.shortcuts import get_object_or_404
+from .models import CustomUser
+from django.contrib.auth import get_user_model
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.views import View
+from django.contrib import messages
+from django.urls import reverse  # 导入reverse函数，用于获取URL
+from django.views.generic import UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView, CreateView
+from .models import Address
+from django.views.generic import DeleteView
+from django.contrib.auth import login
 
+# 登录
 class CustomLoginView(LoginView):
     template_name = 'users/login.html'  # 指定自定义模板
     redirect_authenticated_user = True  # 如果用户已经登录，则自动跳转
@@ -20,25 +38,34 @@ class CustomLoginView(LoginView):
         # 在表单验证失败时返回错误
         return self.render_to_response(self.get_context_data(form=form))
 
-
-
-from django.urls import reverse_lazy
-from django.views.generic import CreateView
-from .forms import CustomUserCreationForm
-
+# 注册
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm  # 使用自定义的注册表单
     template_name = 'users/register.html'  # 指定注册页面模板
-    success_url = reverse_lazy('login')  # 注册成功后跳转到登录页
+    success_url = reverse_lazy('product-list')  # 注册成功后跳转到主页
+
+    def form_valid(self, form):
+        """
+        当表单验证成功后执行：
+        1. 保存用户信息
+        2. 若填写了送货地址，则保存
+        3. 自动登录
+        4. 跳转到主页，并显示欢迎消息
+        """
+        user = form.save()  # 保存新用户
+        login(self.request, user)  # 自动登录用户
+        messages.success(self.request, f"欢迎 {user.username}，您的账号已成功注册！")
+        return redirect(self.success_url)  # 跳转到主页或其他页面
 
     def form_invalid(self, form):
-        # 如果表单无效，确保错误信息被传递到模板
+        """
+        如果表单无效：
+        1. 记录错误信息
+        2. 渲染注册页面并返回错误信息
+        """
+        messages.error(self.request, "注册失败，请检查输入信息并重试。")
         return self.render_to_response(self.get_context_data(form=form))
-
-from django.views.generic import DetailView
-from django.shortcuts import get_object_or_404
-from .models import CustomUser
-
+# 用户中心
 class UserProfileView(DetailView):
     model = CustomUser
     template_name = 'users/user_profile.html'  # 指定用户详情页面模板
@@ -47,11 +74,6 @@ class UserProfileView(DetailView):
     # 获取当前登录的用户
     def get_object(self):
         return get_object_or_404(CustomUser, id=self.request.user.id)
-
-from django.contrib.auth import get_user_model
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.views import View
 
 User = get_user_model()
 
@@ -85,13 +107,6 @@ class PasswordResetByUsernameView(View):
         messages.success(request, "密码已成功重置！")
         return redirect('login')  # 重定向到登录页面
 
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.urls import reverse  # 导入reverse函数，用于获取URL
-from django.views.generic import UpdateView
-
 User = get_user_model()
 
 class UserProfileUpdateView(UpdateView):
@@ -121,13 +136,6 @@ class UserProfileUpdateView(UpdateView):
 
         return super().form_valid(form)
 
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, CreateView
-from django.urls import reverse_lazy
-from .models import Address
-
 class AddressListView(LoginRequiredMixin, ListView):
     model = Address
     template_name = 'users/address_list.html'
@@ -136,10 +144,6 @@ class AddressListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # 只显示当前登录用户的地址
         return Address.objects.filter(user=self.request.user)
-
-
-from django.views.generic import CreateView
-from .models import Address
 
 class AddressCreateView(LoginRequiredMixin, CreateView):
     model = Address
@@ -152,10 +156,6 @@ class AddressCreateView(LoginRequiredMixin, CreateView):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
-
-from django.views.generic import UpdateView
-from .models import Address
-
 class AddressUpdateView(LoginRequiredMixin, UpdateView):
     model = Address
     template_name = 'users/address_form.html'
@@ -164,11 +164,6 @@ class AddressUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
-
-
-from django.views.generic import DeleteView
-from django.urls import reverse_lazy
-from .models import Address
 
 class AddressDeleteView(LoginRequiredMixin, DeleteView):
     model = Address

@@ -77,10 +77,44 @@
 <div class="d-flex justify-content-center align-items-center vh-100">
     <div class="register-container">
         <h2 class="text-center mb-4">用户注册</h2>
-        <form method="post">
+        <form method="post" id="register-form">
             {% csrf_token %}
+
             <div class="mb-3 form-group">
-                <div class="form-label">用户名</div>
+                <label for="id_first_name" class="form-label">
+                    姓 
+                </label>
+                <div class="input-container">
+                    {{ form.first_name }}
+                </div>
+                {% if form.first_name.errors %}
+                    <div class="error-message">
+                        {% for error in form.first_name.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-group">
+                <label for="id_last_name" class="form-label">
+                    名 
+                </label>
+                <div class="input-container">
+                    {{ form.last_name }}
+                </div>
+                {% if form.last_name.errors %}
+                    <div class="error-message">
+                        {% for error in form.last_name.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="mb-3 form-group">
+                <label for="id_username" class="form-label">
+                    用户名 <span class="text-danger">*</span>
+                </label>
                 <div class="input-container">
                     {{ form.username }}
                 </div>
@@ -92,9 +126,11 @@
                     </div>
                 {% endif %}
             </div>
-            
+
             <div class="mb-3 form-group">
-                <div class="form-label">邮箱</div>
+                <label for="id_email" class="form-label">
+                    邮箱 <span class="text-danger">*</span>
+                </label>
                 <div class="input-container">
                     {{ form.email }}
                 </div>
@@ -106,12 +142,15 @@
                     </div>
                 {% endif %}
             </div>
-            
+
             <div class="mb-3 form-group">
-                <div class="form-label">密码</div>
+                <label for="id_password1" class="form-label">
+                    密码 <span class="text-danger">*</span>
+                </label>
                 <div class="input-container">
                     {{ form.password1 }}
                 </div>
+                <div id="password-strength" class="password-strength"></div>
                 {% if form.password1.errors %}
                     <div class="error-message">
                         {% for error in form.password1.errors %}
@@ -119,17 +158,35 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-                <div id="password-strength" class="password-strength"></div>
             </div>
-            
+
             <div class="mb-3 form-group">
-                <div class="form-label">确认密码</div>
+                <label for="id_password2" class="form-label">
+                    确认密码 <span class="text-danger">*</span>
+                </label>
                 <div class="input-container">
                     {{ form.password2 }}
                 </div>
+                <div id="password-match-message" class="password-strength"></div>
                 {% if form.password2.errors %}
                     <div class="error-message">
                         {% for error in form.password2.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-group">
+                <label for="id_shipping_address" class="form-label">
+                    送货地址
+                </label>
+                <div class="input-container">
+                    {{ form.shipping_address }}
+                </div>
+                {% if form.shipping_address.errors %}
+                    <div class="error-message">
+                        {% for error in form.shipping_address.errors %}
                             <p>{{ error }}</p>
                         {% endfor %}
                     </div>
@@ -148,7 +205,7 @@
                 </ul>
             </div>
         {% endif %}
-        
+
         <div class="text-center text-links mt-3">
             <p class="mb-1">已有账号？ <a href="{% url 'login' %}">去登录</a></p>
         </div>
@@ -158,49 +215,80 @@
 
 {% block extra_js %}
 <script>
-    // 检查密码强度
-    function checkPasswordStrength(password) {
-        let strength = "弱";
-        let color = "red";
-        const regexWeak = /[a-zA-Z]/;      // 字母
-        const regexMedium = /[a-zA-Z0-9]/; // 字母 + 数字
-        const regexStrong = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+]).{8,}$/; // 强密码：字母、数字、特殊字符，且长度至少8
+    // 实时检查必填字段是否填写
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('register-form');
+        const registerBtn = document.getElementById('register-btn');
+        
+        form.addEventListener('input', function () {
+            const username = document.getElementById('id_username').value.trim();
+            const email = document.getElementById('id_email').value.trim();
+            const password1 = document.getElementById('id_password1').value.trim();
+            const password2 = document.getElementById('id_password2').value.trim();
+            const shippingAddress = document.getElementById('id_shipping_address').value.trim();
 
-        if (regexStrong.test(password)) {
-            strength = "强";
-            color = "green";
-        } else if (regexMedium.test(password)) {
-            strength = "中";
-            color = "orange";
-        }
+            // 检查必填字段是否已填写
+            const allFieldsFilled = username && email && password1 && password2;
+        });
+    });
 
-        document.getElementById("password-strength").innerHTML = `密码强度: <span class="${strength.toLowerCase()}">${strength}</span>`;
-        document.getElementById("password-strength").style.color = color;
-
-        return strength;
-    }
-
-    // 检查密码一致性
-    function checkPasswordMatch() {
-        const password = document.getElementById("id_password1").value;
-        const confirmPassword = document.getElementById("id_password2").value;
+    document.addEventListener("DOMContentLoaded", function () {
+        const passwordField = document.getElementById("id_password1");
+        const confirmPasswordField = document.getElementById("id_password2");
+        const passwordStrengthIndicator = document.getElementById("password-strength");
+        const passwordMatchMessage = document.getElementById("password-match-message");
         const registerButton = document.getElementById("register-btn");
 
-        if (confirmPassword && password !== confirmPassword) {
-            document.getElementById("password-strength").innerHTML = "密码不一致";
-            registerButton.disabled = true;
-        } else {
+        function checkPasswordStrength(password) {
+            let strength = "弱";
+            let color = "red";
+            const regexWeak = /[a-zA-Z]/; 
+            const regexMedium = /[a-zA-Z0-9]/; 
+            const regexStrong = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+]).{8,}$/; 
+
+            if (regexStrong.test(password)) {
+                strength = "强";
+                color = "green";
+            } else if (regexMedium.test(password)) {
+                strength = "中";
+                color = "orange";
+            }
+
+            if (password.length === 0) {
+                passwordStrengthIndicator.innerHTML = "";
+            } else {
+                passwordStrengthIndicator.innerHTML = `密码强度: <span style="color:${color}">${strength}</span>`;
+            }
+
+            return strength;
+        }
+
+        function checkPasswordMatch() {
+            const password = passwordField.value;
+            const confirmPassword = confirmPasswordField.value;
+
+            if (!password) {
+                passwordMatchMessage.innerHTML = "";
+                registerButton.disabled = true;
+                return;
+            }
+
             const strength = checkPasswordStrength(password);
-            if (strength !== "弱" && password === confirmPassword) {
+            if (confirmPassword && password !== confirmPassword) {
+                passwordMatchMessage.innerHTML = "❌ 密码不一致";
+                passwordMatchMessage.style.color = "red";
+                registerButton.disabled = true;
+            } else if (strength !== "弱" && password === confirmPassword) {
+                passwordMatchMessage.innerHTML = "✅ 密码匹配";
+                passwordMatchMessage.style.color = "green";
                 registerButton.disabled = false;
             } else {
                 registerButton.disabled = true;
             }
         }
-    }
 
-    // 监听密码输入
-    document.getElementById("id_password1").addEventListener("input", checkPasswordMatch);
-    document.getElementById("id_password2").addEventListener("input", checkPasswordMatch);
+        passwordField.addEventListener("input", checkPasswordMatch);
+        confirmPasswordField.addEventListener("input", checkPasswordMatch);
+    });
 </script>
 {% endblock %}

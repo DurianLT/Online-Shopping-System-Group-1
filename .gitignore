@@ -14,3 +14,5 @@ OSSG1/order/__pycache__
 OSSG1/testadmin/migrations
 OSSG1/products/migrations
 OSSG1/users/migrations
+
+OSSG1/media

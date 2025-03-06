@@ -2,16 +2,22 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
+from users.models import Address  # 导入地址模型
+from django.contrib.auth import authenticate
+from users.models import CustomUser  # 引入自定义用户模型
 
 CustomUser = get_user_model()  # 获取自定义用户模型
 
 class CustomUserCreationForm(forms.ModelForm):
+    first_name = forms.CharField(label="名", max_length=150, required=False)
+    last_name = forms.CharField(label="姓", max_length=150, required=False)
     password1 = forms.CharField(label="密码", widget=forms.PasswordInput)
     password2 = forms.CharField(label="确认密码", widget=forms.PasswordInput)
+    shipping_address = forms.CharField(label="送货地址", widget=forms.Textarea, required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email']
+        fields = ['username', 'email', 'first_name', 'last_name']
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -35,20 +41,17 @@ class CustomUserCreationForm(forms.ModelForm):
         return password2
 
     def save(self, commit=True):
-        # 获取 cleaned_data 中的密码字段
         user = super().save(commit=False)
         user.password = make_password(self.cleaned_data["password1"])  # 加密密码并保存
+        user.first_name = self.cleaned_data.get("first_name", "")  # 存储 First Name，默认为空字符串
+        user.last_name = self.cleaned_data.get("last_name", "")  # 存储 Last Name，默认为空字符串
         if commit:
-            user.save()  # 保存到数据库
+            user.save()
+            # 如果用户填写了送货地址，则创建地址记录
+            shipping_address = self.cleaned_data.get("shipping_address")
+            if shipping_address:
+                Address.objects.create(user=user, address=shipping_address, is_default=True)
         return user
-
-
-
-from django import forms
-from django.contrib.auth import authenticate
-from django.core.exceptions import ValidationError
-from users.models import CustomUser  # 引入自定义用户模型
-
 
 class CustomAuthenticationForm(forms.Form):
     username = forms.CharField(label="用户名或邮箱", max_length=255)
