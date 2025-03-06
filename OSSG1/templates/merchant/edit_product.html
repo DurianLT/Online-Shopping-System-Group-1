@@ -9,6 +9,7 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
+        <!-- 商品信息 -->
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">商品信息</h4>
             <div class="mb-3">
@@ -16,6 +17,7 @@
             </div>
         </div>
 
+        <!-- 定价信息 -->
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">定价信息</h4>
             <div class="mb-3">
@@ -23,6 +25,7 @@
             </div>
         </div>
 
+        <!-- 商品图片管理 -->
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">商品图片</h4>
             <div class="mb-3" id="image-container">
@@ -33,7 +36,7 @@
                         {% if product_image.is_primary %}
                             <span>主图</span>
                         {% else %}
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteImage({{ product_image.id }})" data-image-id="{{ product_image.id }}">删除图片</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteImage({{ product_image.id }})">删除图片</button>
                         {% endif %}
                         <label>
                             <input type="radio" name="primary_image" value="{{ product_image.id }}" {% if product_image.is_primary %}checked{% endif %}>
@@ -44,6 +47,7 @@
             </div>
         </div>
 
+        <!-- 上传更多图片 -->
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">上传更多图片</h4>
             <div id="additional-images"></div>
@@ -58,43 +62,32 @@
 <script>
     let imageCount = 0;
 
-    // 添加更多图片上传框
     document.getElementById("add-image-btn").addEventListener("click", function() {
         imageCount++;
-
-        // 创建新的图片上传输入框
         const newImageItem = document.createElement("div");
         newImageItem.classList.add("image-item");
-        newImageItem.setAttribute("id", `new-image-${imageCount}-container`);  // 动态生成唯一id
         newImageItem.innerHTML = `
             <label for="images">上传图片</label>
             <input type="file" name="images" class="form-control" required>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeImage('new-image-${imageCount}-container')">删除</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeImage(this)">删除</button>
         `;
-        
-        // 将新元素加入到图片容器中
         document.getElementById("additional-images").appendChild(newImageItem);
     });
 
-    // 删除上传框
-    function removeImage(containerId) {
-        const imageContainer = document.getElementById(containerId);
-        if (imageContainer) {
-            imageContainer.remove();
+    function removeImage(button) {
+        button.parentElement.remove();
+    }
+
+    function deleteImage(imageId) {
+        if (confirm("确定要删除此图片？")) {
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.innerHTML = `<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                              <input type="hidden" name="delete_image" value="${imageId}">`;
+            document.body.appendChild(form);
+            form.submit();
         }
     }
-
-    // 删除图片的功能
-    function deleteImage(imageId) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '';
-        const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
-        form.innerHTML = `<input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}"><input type="hidden" name="delete_image" value="${imageId}">`;
-        document.body.appendChild(form);
-        form.submit();
-    }
 </script>
-
 
 {% endblock %}

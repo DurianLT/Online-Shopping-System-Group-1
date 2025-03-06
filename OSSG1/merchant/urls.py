@@ -1,16 +1,19 @@
 from django.urls import path
-from merchant.views import merchant_dashboard, product_list, add_product, order_list, order_detail, edit_product, \
-    ship_order, delete_product
+from merchant.views import (
+    MerchantDashboardView, ProductListView, AddProductView, GetSubcategoriesView,
+    EditProductView, DeleteProductView, OrderListView, OrderDetailView, ShipOrderView
+)
 
 app_name = "merchant"
 
 urlpatterns = [
-    path("dashboard/", merchant_dashboard, name="dashboard"),
-    path("products/", product_list, name="product_list"),
-    path("products/<int:product_id>/edit/", edit_product, name="edit_product"),
-    path("products/add/", add_product, name="add_product"),
-    path("orders/", order_list, name="order_list"),
-    path("orders/<int:order_id>/", order_detail, name="order_detail"),
-    path("orders/<int:order_id>/ship/", ship_order, name="ship_order"),
-    path("products/<int:product_id>/delete/", delete_product, name="delete_product"),
+    path("dashboard/", MerchantDashboardView.as_view(), name="dashboard"),
+    path("products/", ProductListView.as_view(), name="product_list"),
+    path("products/add/", AddProductView.as_view(), name="add_product"),
+    path("products/<int:product_id>/edit/", EditProductView.as_view(), name="edit_product"),
+    path("products/<int:product_id>/delete/", DeleteProductView.as_view(), name="delete_product"),
+    path("orders/", OrderListView.as_view(), name="order_list"),
+    path("orders/<int:order_id>/", OrderDetailView.as_view(), name="order_detail"),
+    path("orders/<int:order_id>/ship/", ShipOrderView.as_view(), name="ship_order"),
+    path("get_subcategories/", GetSubcategoriesView.as_view(), name="get_subcategories"),
 ]
