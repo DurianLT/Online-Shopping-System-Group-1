@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from products.models import Product, Pricing, ProductImage, CategoryLevel1, CategoryLevel2, CategoryLevel3
 from users.models import Order
 from merchant.forms import ProductForm, PricingForm
+from django.db.models import Q
 
 
 class MerchantRequiredMixin(LoginRequiredMixin):
@@ -44,7 +45,22 @@ class ProductListView(MerchantRequiredMixin, ListView):
     context_object_name = "products"
 
     def get_queryset(self):
-        return Product.objects.filter(user=self.request.user)
+        """ 获取筛选后的产品列表 """
+        query = self.request.GET.get("q", "").strip()
+        products = Product.objects.filter(user=self.request.user)
+
+        if query:
+            products = products.filter(
+                Q(name__icontains=query) | Q(id__icontains=query)
+            )
+
+        return products
+
+    def get_context_data(self, **kwargs):
+        """ 传递查询参数到模板 """
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.request.GET.get("q", "")
+        return context
 
 
 class AddProductView(MerchantRequiredMixin, CreateView):
@@ -86,8 +102,6 @@ class AddProductView(MerchantRequiredMixin, CreateView):
         return context
 
 
-
-
 class GetSubcategoriesView(View):
     """ 处理 AJAX 级联请求 """
 
@@ -110,11 +124,21 @@ class OrderListView(MerchantRequiredMixin, ListView):
     context_object_name = "orders"
 
     def get_queryset(self):
-        status_filter = self.request.GET.get("status", "")
+        """ 获取当前商家所有订单，并按购买日期降序排列 """
+        status_filter = self.request.GET.get("status", "").strip()
         orders = Order.objects.filter(seller=self.request.user).order_by("-created_at")
+
         if status_filter:
             orders = orders.filter(status=status_filter)
+
         return orders
+
+    def get_context_data(self, **kwargs):
+        """ 传递筛选状态到模板 """
+        context = super().get_context_data(**kwargs)
+        context["status_filter"] = self.request.GET.get("status", "")
+        return context
+
 
 
 class OrderDetailView(MerchantRequiredMixin, DetailView):

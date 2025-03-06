@@ -6,7 +6,7 @@
 <div class="container mt-5">
     <h2 class="fw-bold">订单管理</h2>
 
-    <!-- 筛选订单状态 -->
+    <!-- 订单状态筛选 -->
     <form method="get" class="mb-3">
         <label for="status">订单状态:</label>
         <select name="status" id="status" class="form-select w-auto d-inline">
@@ -36,7 +36,13 @@
             {% for order in orders %}
             <tr>
                 <td>#{{ order.id }}</td>
-                <td>{{ order.user.username }}</td>
+                <td>
+                    {% if order.user.first_name or order.user.last_name %}
+                        {{ order.user.first_name }} {{ order.user.last_name }}
+                    {% else %}
+                        {{ order.user.username }}
+                    {% endif %}
+                </td>
                 <td>¥{{ order.total_amount }}</td>
                 <td>
                     <span class="badge 
