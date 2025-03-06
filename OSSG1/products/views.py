@@ -15,7 +15,7 @@ class ProductListView(ListView):
     paginate_by = 8  # 每页8个商品
 
     def get_queryset(self):
-        queryset = Product.objects.all().filter(hidden=False).order_by('name')  # 添加排序
+        queryset = Product.objects.all().filter(hidden=False).order_by('created_at')
 
         # 基于三级分类筛选
         level3_id = self.kwargs.get('level3_id')
@@ -171,14 +171,6 @@ def category_detail(request, category_id, level=1):
     
     return render(request, 'products/category_detail.html', {'category': category, 'products': products})
 
-from django.core.paginator import Paginator
-from django.http import JsonResponse
-
-from django.http import JsonResponse
-from django.core.paginator import Paginator
-from django.views.generic import ListView
-from .models import Product, Pricing
-
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.views.generic import ListView
@@ -190,7 +182,8 @@ class ProductListApiView(ListView):
 
     def get(self, request, *args, **kwargs):
         page_number = request.GET.get('page', 1)
-        products = Product.objects.all().filter(hidden=False)  # 获取未隐藏的商品
+        # 添加排序条件，按创建时间排序
+        products = Product.objects.all().filter(hidden=False).order_by('created_at')  # 或者按其他字段排序
 
         paginator = Paginator(products, 8)  # 每页 8 个商品
         page_obj = paginator.get_page(page_number)
@@ -222,6 +215,7 @@ class ProductListApiView(ListView):
             })
 
         return JsonResponse({'products': products_data})
+
 
 
 
