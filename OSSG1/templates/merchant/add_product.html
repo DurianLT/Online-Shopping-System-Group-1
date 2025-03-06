@@ -9,26 +9,45 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
+        <!-- 商品信息 -->
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">商品信息</h4>
             <div class="mb-3">
-                {{ product_form.as_p }}
+                {{ product_form.name.label_tag }} {{ product_form.name }}
+                {{ product_form.description.label_tag }} {{ product_form.description }}
+                {{ product_form.sku.label_tag }} {{ product_form.sku }}
+                {{ product_form.hidden.label_tag }} {{ product_form.hidden }}
+                {{ product_form.is_physical.label_tag }} {{ product_form.is_physical }}
+
+                <label>选择商品分类</label>
+                <select id="id_category_level1" name="category_level1" class="form-control">
+                    <option value="">选择一级分类</option>
+                    {% for category in categories_level1 %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <select id="id_category_level2" name="category_level2" class="form-control" disabled>
+                    <option value="">选择二级分类</option>
+                </select>
+
+                <select id="id_category_level3" name="category_level3" class="form-control" disabled>
+                    <option value="">选择三级分类</option>
+                </select>
             </div>
         </div>
 
+        <!-- 商品图片上传 -->
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">商品图片</h4>
             <div class="mb-3" id="image-container">
-                <div class="image-item" id="image-1-container">
-                    <label for="images">上传图片 (主图)</label>
-                    <input type="file" name="images" id="image-1" class="form-control" required>
-                    <button type="button" class="btn btn-danger btn-sm" style="display: none;" disabled>删除</button>
-                    <span>主图</span>  <!-- 标明这是主图 -->
-                </div>
+                <label for="images">上传图片</label>
+                <input type="file" name="images" class="form-control" required>
             </div>
             <button type="button" class="btn btn-info" id="add-image-btn">添加更多图片</button>
         </div>
 
+        <!-- 定价信息 -->
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">定价信息</h4>
             <div class="mb-3">
@@ -37,35 +56,49 @@
         </div>
 
         <button type="submit" class="btn btn-success mt-3">提交商品</button>
-        <a href="{% url 'merchant:product_list' %}" class="btn btn-secondary mt-3">取消</a>
     </form>
 </div>
 
 <script>
-    let imageCount = 1;
+document.addEventListener("DOMContentLoaded", function() {
+    let level1Field = document.querySelector("#id_category_level1");
+    let level2Field = document.querySelector("#id_category_level2");
+    let level3Field = document.querySelector("#id_category_level3");
 
-    document.getElementById("add-image-btn").addEventListener("click", function() {
-        imageCount++;
-        
-        // 创建新的图片上传输入框
-        const newImageItem = document.createElement("div");
-        newImageItem.classList.add("image-item");
-        newImageItem.setAttribute("id", `image-${imageCount}-container`);
-        newImageItem.innerHTML = `
-            <label for="images">上传图片</label>
-            <input type="file" name="images" id="image-${imageCount}" class="form-control" required>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeImage(${imageCount})">删除</button>
-        `;
-        
-        // 将新元素加入到图片容器中
-        document.getElementById("image-container").appendChild(newImageItem);
+    level1Field.addEventListener("change", function() {
+        level2Field.innerHTML = '<option value="">选择二级分类</option>';
+        level2Field.disabled = true;
+        level3Field.innerHTML = '<option value="">选择三级分类</option>';
+        level3Field.disabled = true;
+
+        if (this.value) {
+            fetch(`/merchant/get_subcategories/?parent_id=${this.value}&level=2`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length) {
+                        data.forEach(item => level2Field.add(new Option(item.name, item.id)));
+                        level2Field.disabled = false;
+                    }
+                });
+        }
     });
 
-    // 删除图片上传框
-    function removeImage(imageId) {
-        const imageContainer = document.getElementById(`image-${imageId}-container`);
-        imageContainer.remove();
-    }
+    level2Field.addEventListener("change", function() {
+        level3Field.innerHTML = '<option value="">选择三级分类</option>';
+        level3Field.disabled = true;
+
+        if (this.value) {
+            fetch(`/merchant/get_subcategories/?parent_id=${this.value}&level=3`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length) {
+                        data.forEach(item => level3Field.add(new Option(item.name, item.id)));
+                        level3Field.disabled = false;
+                    }
+                });
+        }
+    });
+});
 </script>
 
 {% endblock %}

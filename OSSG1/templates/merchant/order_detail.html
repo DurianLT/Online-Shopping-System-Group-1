@@ -52,7 +52,11 @@
 
     <!-- 订单状态操作 -->
     {% if order.status == 'Paid' %}
-        <a href="{% url 'merchant:ship_order' order.id %}" class="btn btn-primary">标记为已发货</a>
+        <form method="post" action="{% url 'merchant:ship_order' order.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">标记为已发货</button>
+        </form>
+
     {% elif order.status == 'Shipped' %}
         <span class="btn btn-secondary disabled">等待买家确认收货</span>
     {% elif order.status == 'Completed' %}
