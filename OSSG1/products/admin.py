@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, Pricing
+from .models import Product, ProductImage, Pricing
 from users.models import CustomUser
 
 
@@ -15,9 +15,9 @@ class PricingInline(admin.StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'user', 'created_at', 'updated_at')  # 显示的字段
+    list_display = ('name', 'user', 'created_at', 'updated_at')  # 显示的字段
     search_fields = ('name', 'sku', 'description')  # 可搜索的字段
-    list_filter = ('category', 'created_at', 'updated_at')  # 过滤器
+    list_filter = ('created_at', 'updated_at')  # 过滤器
     inlines = [ProductImageInline, PricingInline]  # 嵌套显示图片和定价
 
 
@@ -46,6 +46,5 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 # 注册模型到 Django Admin
-admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Pricing, PricingAdmin)

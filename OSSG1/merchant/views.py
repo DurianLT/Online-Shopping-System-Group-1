@@ -41,7 +41,7 @@ def merchant_dashboard(request):
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from merchant.decorators import merchant_required
-from products.models import Product, Pricing, Category
+from products.models import Product, Pricing
 from merchant.forms import ProductForm, PricingForm
 
 @login_required

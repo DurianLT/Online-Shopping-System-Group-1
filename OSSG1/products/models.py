@@ -3,27 +3,54 @@ from users.models import CustomUser
 
 
 # 存储商品分类信息
-class Category(models.Model):
-    name = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+from django.db import models
+
+# 一级分类表
+class CategoryLevel1(models.Model):
+    name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
 
+# 二级分类表（外键关联一级分类）
+class CategoryLevel2(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    parent = models.ForeignKey(CategoryLevel1, on_delete=models.CASCADE, related_name="subcategories")
+
+    def __str__(self):
+        return f"{self.parent.name} > {self.name}"
+
+# 三级分类表（外键关联二级分类）
+class CategoryLevel3(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    parent = models.ForeignKey(CategoryLevel2, on_delete=models.CASCADE, related_name="subcategories")
+
+    def __str__(self):
+        return f"{self.parent.parent.name} > {self.parent.name} > {self.name}"
+
+
 
 from django.db import models
+
 
 class Product(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=255)
     description = models.TextField()
     sku = models.CharField(max_length=50, unique=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
+
+    # 只允许产品关联到三级分类
+    category_level1 = models.ForeignKey(CategoryLevel1, on_delete=models.CASCADE, null=True, blank=True,
+                                        related_name="products_level1")
+    category_level2 = models.ForeignKey(CategoryLevel2, on_delete=models.CASCADE, null=True, blank=True,
+                                        related_name="products_level2")
+    category_level3 = models.ForeignKey(CategoryLevel3, on_delete=models.CASCADE, null=True, blank=True,
+                                        related_name="products_level3")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    hidden = models.BooleanField(default=False)  # 新增隐藏状态，默认为不隐藏
-    is_physical = models.BooleanField(default=True)  # 新增是否为实体商品，默认为实体商品
+    hidden = models.BooleanField(default=False)
+    is_physical = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
