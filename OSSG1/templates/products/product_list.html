@@ -110,10 +110,10 @@ function loadMoreProducts() {
     document.getElementById('loading').style.display = 'block';  // 显示加载提示
 
     // 通过当前页码请求数据
-    fetch(`/api/products/?page=${currentPage + 1}`)
+    fetch(`/api/products/?page=${currentPage+ 1}`)
         .then(response => response.json())
         .then(data => {
-            if (data.products.length > 0) {
+            if (data.products.length/8 == 1) {
                 // 当前页码加 1
                 currentPage += 1;
 
