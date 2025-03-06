@@ -80,7 +80,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="#">所有商品</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'product-list' %}">所有商品</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'cart_list' %}">购物车</a></li>
                     {% if user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'user_profile' %}">用户中心</a></li>
