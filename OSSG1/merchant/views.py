@@ -71,8 +71,18 @@ class AddProductView(MerchantRequiredMixin, CreateView):
     success_url = reverse_lazy("merchant:product_list")
 
     def form_valid(self, form):
+        print("2222222")
         form.instance.user = self.request.user  # 设置商家为当前用户
         response = super().form_valid(form)
+
+        custom_category1 = self.request.POST.get("custom_category_level1")
+        print(custom_category1)
+        custom_category2 = self.request.POST.get("custom_category_level2")
+        print(custom_category2)
+        custom_category3 = self.request.POST.get("custom_category_level3")
+        print(custom_category3)
+
+
 
         # 处理定价表单
         pricing_form = PricingForm(self.request.POST)
