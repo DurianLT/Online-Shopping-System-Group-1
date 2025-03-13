@@ -5,77 +5,290 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/users/register.css' %}">
+<style>
+    .register-container {
+        width: 100%;
+        max-width: 400px;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .input-container input {
+        width: 100%;
+    }
+    .form-control {
+        height: 48px;
+        font-size: 16px;
+        border-radius: 8px;
+        padding-left: 12px;
+        width: 100%;
+    }
+    .btn-register {
+        height: 48px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 8px;
+        width: 100%;
+        background-color: #007bff;
+        color: white;
+    }
+    .btn-register:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+    .text-links a {
+        color: #007bff;
+        font-size: 14px;
+        text-decoration: none;
+    }
+    .text-links a:hover {
+        text-decoration: underline;
+    }
+    .error-message {
+        color: red;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+    .password-strength {
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .password-strength span {
+        padding: 3px 10px;
+        border-radius: 5px;
+    }
+    .weak { background-color: red; color: white; }
+    .medium { background-color: orange; color: white; }
+    .strong { background-color: green; color: white; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-body p-4">
-                    <h2 class="text-center h4 mb-4">用户注册</h2>
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">用户名</label>
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.username.errors %}
-                                        <p>{{ error }}</p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">邮箱</label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.email.errors %}
-                                        <p>{{ error }}</p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.password1.id_for_label }}" class="form-label">密码</label>
-                            {{ form.password1 }}
-                            {% if form.password1.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.password1.errors %}
-                                        <p>{{ error }}</p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.password2.id_for_label }}" class="form-label">确认密码</label>
-                            {{ form.password2 }}
-                            {% if form.password2.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.password2.errors %}
-                                        <p>{{ error }}</p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="register-container">
+        <h2 class="text-center mb-4">用户注册</h2>
+        <form method="post" id="register-form">
+            {% csrf_token %}
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success">注册</button>
-                        </div>
-                    </form>
-
-                    <div class="text-center mt-3">
-                        <p class="mb-1">已有账号？ <a href="{% url 'login' %}" class="text-decoration-none">去登录</a></p>
-                    </div>
+            <div class="mb-3 form-group">
+                <label for="id_first_name" class="form-label">
+                    姓 
+                </label>
+                <div class="input-container">
+                    {{ form.first_name }}
                 </div>
+                {% if form.first_name.errors %}
+                    <div class="error-message">
+                        {% for error in form.first_name.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+
+            <div class="mb-3 form-group">
+                <label for="id_last_name" class="form-label">
+                    名 
+                </label>
+                <div class="input-container">
+                    {{ form.last_name }}
+                </div>
+                {% if form.last_name.errors %}
+                    <div class="error-message">
+                        {% for error in form.last_name.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="mb-3 form-group">
+                <label for="id_username" class="form-label">
+                    用户名 <span class="text-danger">*</span>
+                </label>
+                <div class="input-container">
+                    {{ form.username }}
+                </div>
+                {% if form.username.errors %}
+                    <div class="error-message">
+                        {% for error in form.username.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-group">
+                <label for="id_email" class="form-label">
+                    邮箱 <span class="text-danger">*</span>
+                </label>
+                <div class="input-container">
+                    {{ form.email }}
+                </div>
+                {% if form.email.errors %}
+                    <div class="error-message">
+                        {% for error in form.email.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-group">
+                <label for="id_password1" class="form-label">
+                    密码 <span class="text-danger">*</span>
+                </label>
+                <div class="input-container">
+                    {{ form.password1 }}
+                </div>
+                <div id="password-strength" class="password-strength"></div>
+                {% if form.password1.errors %}
+                    <div class="error-message">
+                        {% for error in form.password1.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-group">
+                <label for="id_password2" class="form-label">
+                    确认密码 <span class="text-danger">*</span>
+                </label>
+                <div class="input-container">
+                    {{ form.password2 }}
+                </div>
+                <div id="password-match-message" class="password-strength"></div>
+                {% if form.password2.errors %}
+                    <div class="error-message">
+                        {% for error in form.password2.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-group">
+                <label for="id_shipping_address" class="form-label">
+                    送货地址
+                </label>
+                <div class="input-container">
+                    {{ form.shipping_address }}
+                </div>
+                {% if form.shipping_address.errors %}
+                    <div class="error-message">
+                        {% for error in form.shipping_address.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-success btn-register" id="register-btn" disabled>注册</button>
+        </form>
+
+        {% if form.non_field_errors %}
+            <div class="error-message">
+                <ul>
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="text-center text-links mt-3">
+            <p class="mb-1">已有账号？ <a href="{% url 'login' %}">去登录</a></p>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 实时检查必填字段是否填写
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('register-form');
+        const registerBtn = document.getElementById('register-btn');
+        
+        form.addEventListener('input', function () {
+            const username = document.getElementById('id_username').value.trim();
+            const email = document.getElementById('id_email').value.trim();
+            const password1 = document.getElementById('id_password1').value.trim();
+            const password2 = document.getElementById('id_password2').value.trim();
+            const shippingAddress = document.getElementById('id_shipping_address').value.trim();
+
+            // 检查必填字段是否已填写
+            const allFieldsFilled = username && email && password1 && password2;
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const passwordField = document.getElementById("id_password1");
+        const confirmPasswordField = document.getElementById("id_password2");
+        const passwordStrengthIndicator = document.getElementById("password-strength");
+        const passwordMatchMessage = document.getElementById("password-match-message");
+        const registerButton = document.getElementById("register-btn");
+
+        function checkPasswordStrength(password) {
+            let strength = "弱";
+            let color = "red";
+            const regexWeak = /[a-zA-Z]/; 
+            const regexMedium = /[a-zA-Z0-9]/; 
+            const regexStrong = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+]).{8,}$/; 
+
+            if (regexStrong.test(password)) {
+                strength = "强";
+                color = "green";
+            } else if (regexMedium.test(password)) {
+                strength = "中";
+                color = "orange";
+            }
+
+            if (password.length === 0) {
+                passwordStrengthIndicator.innerHTML = "";
+            } else {
+                passwordStrengthIndicator.innerHTML = `密码强度: <span style="color:${color}">${strength}</span>`;
+            }
+
+            return strength;
+        }
+
+        function checkPasswordMatch() {
+            const password = passwordField.value;
+            const confirmPassword = confirmPasswordField.value;
+
+            if (!password) {
+                passwordMatchMessage.innerHTML = "";
+                registerButton.disabled = true;
+                return;
+            }
+
+            const strength = checkPasswordStrength(password);
+            if (confirmPassword && password !== confirmPassword) {
+                passwordMatchMessage.innerHTML = "❌ 密码不一致";
+                passwordMatchMessage.style.color = "red";
+                registerButton.disabled = true;
+            } else if (strength !== "弱" && password === confirmPassword) {
+                passwordMatchMessage.innerHTML = "✅ 密码匹配";
+                passwordMatchMessage.style.color = "green";
+                registerButton.disabled = false;
+            } else {
+                registerButton.disabled = true;
+            }
+        }
+
+        passwordField.addEventListener("input", checkPasswordMatch);
+        confirmPasswordField.addEventListener("input", checkPasswordMatch);
+    });
+</script>
 {% endblock %}

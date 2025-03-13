@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}删除地址{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>确认删除送货地址</h1>
+    <p>您确定要删除该地址吗？</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">确认删除</button>
+    </form>
+    <a href="{% url 'address_list' %}" class="btn btn-secondary">取消</a>
+</div>
+{% endblock %}

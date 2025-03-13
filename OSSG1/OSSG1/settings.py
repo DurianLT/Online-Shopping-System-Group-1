@@ -28,6 +28,13 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,6 +48,9 @@ INSTALLED_APPS = [
     # 自定义应用
     'users', # 用户模块
     'products', # 商品模块
+    'shoppingtrolley',
+    'order',
+    'merchant',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +76,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "products.context_processors.categories_context",  # 全局添加商品分类
             ],
         },
     },

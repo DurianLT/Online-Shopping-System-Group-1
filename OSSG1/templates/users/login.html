@@ -5,35 +5,91 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/users/login.css' %}">
+<style>
+    .login-container {
+        width: 100%;
+        max-width: 400px;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .input-container input {
+        width: 100%;
+    }
+    .form-control {
+        height: 48px;
+        font-size: 16px;
+        border-radius: 8px;
+        padding-left: 12px;
+        width: 100%;
+    }
+    .btn-login {
+        height: 48px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 8px;
+        width: 100%;
+    }
+    .text-links a {
+        color: #007bff;
+        font-size: 14px;
+        text-decoration: none;
+    }
+    .text-links a:hover {
+        text-decoration: underline;
+    }
+    .error-message {
+        color: red;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-body p-4">
-                    <h2 class="text-center h4 mb-4">用户登录</h2>
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">用户名</label>
-                            {{ form.username }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ form.password1.id_for_label }}" class="form-label">密码</label>
-                            {{ form.password }}
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">登录</button>
-                        </div>
-                    </form>
-                    <div class="text-center mt-3">
-                        <p class="mb-1">没有账号？ <a href="{% url 'register' %}" class="text-decoration-none">去注册</a></p>
-                        <p><a href="#" class="text-decoration-none">忘记密码？</a></p>
-                    </div>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="login-container">
+        <h2 class="text-center mb-4">用户登录</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3 form-group">
+                <div class="form-label">用户名或邮箱</div>
+                <div class="input-container">
+                    {{ form.username }}
                 </div>
             </div>
+            <div class="mb-3 form-group">
+                <div class="form-label">密码</div>
+                <div class="input-container">
+                    {{ form.password }}
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-login">登录</button>
+        </form>
+
+        {% if form.non_field_errors %}
+            <div class="error-message">
+                <ul>
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
+        <div class="text-center text-links mt-3">
+            <p class="mb-1">没有账号？ <a href="{% url 'register' %}">去注册</a></p>
+            <p><a href="{% url 'password_reset_by_username' %}">忘记密码？</a></p>
         </div>
     </div>
 </div>

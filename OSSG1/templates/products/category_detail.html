@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} 分类{% endblock %}
+
+{% block extra_head %}
+    <style>
+        /* 轮播图样式 */
+        #carouselExample {
+            max-width: 1200px;
+            height: 400px;
+            margin: 0 auto;
+        }
+
+        .carousel-inner,
+        .carousel-item {
+            height: 100%;
+        }
+
+        .carousel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* 自定义箭头样式 */
+        .custom-arrow {
+            filter: invert(0);
+            transition: filter 0.3s ease-in-out;
+        }
+
+        #carouselExample:hover .custom-arrow {
+            filter: invert(1); /* 反转颜色 */
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- 分类标题 -->
+    <h2 class="my-4">{{ category.name }} 分类</h2>
+
+    <!-- 商品列表 -->
+    <div class="container">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
+            {% for product in products %}
+                <div class="col">
+                    <div class="card h-100">
+                        <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
+                            <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title text-dark">{{ product.name }}</h5>
+                                <p class="card-text text-muted">{{ product.description|slice:":50" }}...</p>
+                                <p class="text-danger fw-bold">
+                                    {% if product.pricing.discount %}
+                                        ¥{{ product.pricing.price }} <del class="text-muted">¥{{ product.pricing.discount }}</del>
+                                    {% else %}
+                                        ¥{{ product.pricing.price }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 如果没有找到产品 -->
+    {% if not products %}
+        <div class="container">
+            <p>当前分类下没有找到商品。</p>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+
+{% endblock %}

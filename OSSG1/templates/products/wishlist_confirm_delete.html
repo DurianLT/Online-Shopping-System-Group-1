@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}确认删除{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="fw-bold mt-5">确认删除</h1>
+    <p>您确定要从收藏夹中移除 "{{ wishlist_item.product.name }}" 吗？</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">确认删除</button>
+        <a href="{% url 'wishlist' %}" class="btn btn-secondary">取消</a>
+    </form>
+</div>
+{% endblock %}

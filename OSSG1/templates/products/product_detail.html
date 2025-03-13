@@ -5,8 +5,111 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/products/product_detail.css' %}">
-{% endblock %}
+<style>
+    .register-container {
+        width: 100%;
+        max-width: 400px;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .input-container input {
+        width: 100%;
+    }
+    .form-control {
+        height: 48px;
+        font-size: 16px;
+        border-radius: 8px;
+        padding-left: 12px;
+        width: 100%;
+    }
+    .btn-register {
+        height: 48px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 8px;
+        width: 100%;
+        background-color: #007bff;
+        color: white;
+    }
+    .btn-register:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+    .text-links a {
+        color: #007bff;
+        font-size: 14px;
+        text-decoration: none;
+    }
+    .text-links a:hover {
+        text-decoration: underline;
+    }
+    .error-message {
+        color: red;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+    .password-strength {
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .password-strength span {
+        padding: 3px 10px;
+        border-radius: 5px;
+    }
+    .weak { background-color: red; color: white; }
+    .medium { background-color: orange; color: white; }
+    .strong { background-color: green; color: white; }
+    .btn-group {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-group .btn {
+        flex-grow: 1;
+    }
+    
+    /* 添加收藏按钮表单样式 */
+    .form-wishlist {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+    }
 
+    .btn-wishlist {
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 8px;
+        width: 100%;
+        padding: 12px;
+    }
+
+    .btn-wishlist-add {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-wishlist-remove {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-wishlist:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+    
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -17,7 +120,7 @@
                 <div class="carousel-inner">
                     {% for image in product.images.all %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            <img src="{{ image.url }}" class="d-block w-100 rounded" alt="{{ product.name }}">
+                            <img src="{{ image.image.url }}" class="d-block w-100 rounded" alt="{{ product.name }}">
                         </div>
                     {% endfor %}
                 </div>
@@ -29,27 +132,72 @@
                 </button>
             </div>
         </div>
-        
+
         <!-- 右侧商品信息 -->
         <div class="col-md-7">
             <h1 class="fw-bold">{{ product.name }}</h1>
             <p class="text-muted">SKU: {{ product.sku }}</p>
             <p><strong>分类：</strong>{{ product.category.name }}</p>
-            
+
+            <!-- 商品标签属性展示 -->
+            <div class="mt-3">
+                <h5 class="fw-bold">关键词</h5>
+                <ul class="list-unstyled">
+                    {% for attribute in product.attributes.all %}
+                        <li><strong>{{ attribute.key }}:</strong> {{ attribute.value }}</li>
+                    {% empty %}
+                        <li class="text-muted">暂无商品属性</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        
             {% if product.pricing.discount %}
                 <p class="text-danger fs-4 fw-bold">折扣价: ¥{{ product.pricing.discount }}</p>
                 <p class="text-muted text-decoration-line-through">原价: ¥{{ product.pricing.price }}</p>
             {% else %}
                 <p class="text-success fs-4 fw-bold">价格: ¥{{ product.pricing.price }}</p>
             {% endif %}
-            
+
             <div class="d-flex gap-3 mt-3">
-                <button class="btn btn-warning btn-lg">加入购物车</button>
-                <button class="btn btn-danger btn-lg">立即购买</button>
+                <form method="post" action="{% url 'add_to_cart' product.id %}">
+                    {% csrf_token %}
+                    <!-- 数量选择框 -->
+                    <div class="input-group" style="width: 150px;">
+                        <span class="input-group-text">数量</span>
+                        <input type="number" class="form-control" name="quantity" id="quantityInput" value="1" min="1" required>
+                    </div>
+                    <div class="btn-group mt-3">
+                        <button type="submit" class="btn btn-warning btn-lg">加入购物车</button>
+                    </div>
+                </form>
+            
+                <!-- 立即购买按钮，跳转到订单确认 -->
+                <form method="get" action="{% url 'checkout_single_product' product.id %}">
+                    <input type="hidden" name="quantity" id="quantityHidden">
+                    <button type="submit" class="btn btn-danger btn-lg">立即购买</button>
+                </form>
             </div>
+        
+            <!-- 收藏按钮表单 -->
+            <form method="post" class="form-wishlist">
+                {% csrf_token %}
+                {% if user.is_authenticated %}
+                    {% if is_in_wishlist %}
+                        <button type="submit" name="remove_from_wishlist" class="btn btn-wishlist btn-wishlist-remove">取消收藏</button>
+                    {% else %}
+                        <button type="submit" name="add_to_wishlist" class="btn btn-wishlist btn-wishlist-add">添加收藏</button>
+                    {% endif %}
+                {% else %}
+                    <p><a href="{% url 'login' %}">请登录后收藏商品</a></p>
+                {% endif %}
+            </form>
+        
+        
         </div>
     </div>
-    
+
+
+
     <!-- 商品详情介绍 -->
     <div class="row mt-5">
         <div class="col-12">
@@ -58,4 +206,11 @@
         </div>
     </div>
 </div>
+    
+<script>
+    // 在点击 "立即购买" 时，将数量输入框的值复制到隐藏输入框
+    document.querySelector(".btn-danger").addEventListener("click", function() {
+        document.getElementById("quantityHidden").value = document.getElementById("quantityInput").value;
+    });
+</script>
 {% endblock %}

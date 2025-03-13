@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}订单详情 - #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold">订单详情</h2>
+
+    <!-- 订单信息 -->
+    <div class="card p-4 mt-3 shadow-sm">
+        <h4>订单编号: #{{ order.id }}</h4>
+        <p><strong>商家:</strong> {{ order.seller.username }}</p>
+        <p><strong>创建时间:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
+        <p><strong>订单状态:</strong> 
+            <span class="badge 
+                {% if order.status == 'Pending' %}bg-warning
+                {% elif order.status == 'Paid' %}bg-success
+                {% elif order.status == 'Shipped' %}bg-primary
+                {% elif order.status == 'Completed' %}bg-secondary
+                {% elif order.status == 'Cancelled' %}bg-danger
+                {% endif %}">
+                {{ order.get_status_display }}
+            </span>
+        </p>
+    </div>
+
+    <!-- 收货地址 -->
+    <div class="card p-4 mt-4 shadow-sm">
+        <h4 class="fw-bold">收货地址</h4>
+        {% if order.address %}
+            <p><strong>地址:</strong> {{ order.address.address }}</p>
+        {% else %}
+            <p class="text-muted">未提供收货地址</p>
+        {% endif %}
+    </div>
+
+    <!-- 商品列表 -->
+    <div class="card p-4 mt-4 shadow-sm">
+        <h4 class="fw-bold">商品列表</h4>
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>商品</th>
+                    <th>单价</th>
+                    <th>数量</th>
+                    <th>小计</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>
+                        <a href="{% url 'product-detail' item.product.id %}" class="text-decoration-none">
+                            {{ item.product.name }}
+                        </a>
+                    </td>
+                    <td>¥{{ item.price }}</td>
+                    <td>{{ item.quantity }}</td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- 订单总价 -->
+        <div class="text-end mt-3">
+            <h4 class="fw-bold">订单总额: ¥{{ order.total_amount }}</h4>
+        </div>
+    </div>
+
+    <!-- 订单操作按钮 -->
+    <div class="mt-4 d-flex gap-3">
+        {% if order.status == 'Pending' %}
+            <a href="" class="btn btn-success btn-lg">去支付</a>
+            <a href="" class="btn btn-danger btn-lg">取消订单</a>
+        {% elif order.status == 'Paid' %}
+            <span class="btn btn-secondary btn-lg disabled">已支付</span>
+        {% elif order.status == 'Shipped' %}
+            <a href="{% url 'orders:confirm_receipt' order.id %}" class="btn btn-primary btn-lg">确认收货</a>
+        {% elif order.status == 'Completed' %}
+            <span class="btn btn-success btn-lg disabled">已完成</span>
+        {% elif order.status == 'Cancelled' %}
+            <span class="btn btn-danger btn-lg disabled">已取消</span>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

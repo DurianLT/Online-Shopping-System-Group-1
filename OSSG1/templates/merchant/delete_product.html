@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}删除商品 - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold text-danger">确认删除商品</h2>
+
+    <div class="card p-4 mt-4 shadow-sm">
+        <h4>商品名称: {{ product.name }}</h4>
+        <p><strong>分类:</strong> {{ product.category.name }}</p>
+        <p><strong>价格:</strong> ¥{{ product.pricing.price }}</p>
+        <p class="text-muted">此操作不可撤销，确认删除该商品吗？</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">确认删除</button>
+            <a href="{% url 'merchant:product_list' %}" class="btn btn-secondary">取消</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

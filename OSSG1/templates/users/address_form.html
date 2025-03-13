@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ view.name }}送货地址{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/address/address_form.css' %}">
+    <style>
+        .address-form-container {
+            width: 100%;
+            max-width: 500px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .form-control {
+            height: 48px;
+            font-size: 16px;
+            border-radius: 8px;
+            padding-left: 12px;
+            width: 100%;
+        }
+        .btn-save {
+            height: 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
+            width: 100%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            margin-top: 20px;
+        }
+        .btn-save:hover {
+            background-color: #0056b3;
+        }
+
+        /* 放大复选框 */
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+
+        .form-check-label {
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        .text-center a {
+            color: #007bff;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .text-center a:hover {
+            text-decoration: underline;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="address-form-container">
+        <h2 class="text-center mb-4">{{ view.name }}送货地址</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3 form-group">
+                <label for="address" class="form-label">地址</label>
+                {{ form.address }}
+            </div>
+            <div class="mb-3 form-group d-flex align-items-center">
+                <!-- 放大复选框并放在同一行 -->
+                <label for="is_default" class="form-label mb-0">设置为默认地址</label>
+                {{ form.is_default }}
+            </div>
+            <button type="submit" class="btn-save">保存</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'address_list' %}">返回地址列表</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
