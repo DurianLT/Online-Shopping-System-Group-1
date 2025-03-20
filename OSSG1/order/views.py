@@ -192,3 +192,10 @@ def request_refund(request, order_id):
         messages.error(request, "当前订单状态无法申请退款。")
 
     return redirect('order_detail', order_id=order.id)
+
+def confirm_receipt(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user, status="Shipped")
+    order.status = "Completed"
+    order.save()
+    messages.success(request, "订单已确认收货")
+    return redirect("order_detail", order_id=order.id)
