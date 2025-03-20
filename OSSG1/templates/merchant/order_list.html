@@ -51,6 +51,8 @@
                         {% elif order.status == 'Shipped' %}bg-primary
                         {% elif order.status == 'Completed' %}bg-secondary
                         {% elif order.status == 'Cancelled' %}bg-danger
+                        {% elif order.status == 'Refunding' %}bg-info
+                        {% elif order.status == 'Refunded' %}bg-dark
                         {% endif %}">
                         {{ order.get_status_display }}
                     </span>

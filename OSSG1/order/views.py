@@ -62,9 +62,16 @@ def order_from_cart(request):
 from django.shortcuts import render
 
 def order_list(request):
-    orders = Order.objects.filter(user=request.user).order_by("-created_at")
-    return render(request, "order/order_list.html", {"orders": orders})
+    status_filter = request.GET.get("status", "")
+    orders = Order.objects.filter(seller=request.user).order_by("-created_at")
 
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+
+    return render(request, "merchant/order_list.html", {
+        "orders": orders,
+        "status_filter": status_filter
+    })
 
 from django.shortcuts import render, get_object_or_404
 
