@@ -179,3 +179,16 @@ def order_single_product(request, product_id):
 
         messages.success(request, "订单创建成功！")
         return redirect("order_list")
+
+@login_required
+def request_refund(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    if order.status in ['Paid', 'Shipped']:
+        order.status = 'Refunding'
+        order.save()
+        messages.success(request, "退款申请已提交，等待商家处理。")
+    else:
+        messages.error(request, "当前订单状态无法申请退款。")
+
+    return redirect('order_detail', order_id=order.id)

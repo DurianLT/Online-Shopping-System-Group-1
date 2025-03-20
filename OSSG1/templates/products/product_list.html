@@ -127,7 +127,13 @@ function loadMoreProducts() {
                                     <div class="card-body">
                                         <h5 class="card-title text-dark">${product.name}</h5>
                                         <p class="card-text text-muted">${product.description.slice(0, 50)}...</p>
-                                        <p class="text-danger fw-bold">${product.price}</p>
+                                        <p class="text-danger fw-bold">
+                                            {% if product.pricing.discount %}
+                                                ¥${product.price} <del class="text-muted">¥${ product.discount }</del>
+                                            {% else %}
+                                                ¥${ product.price }
+                                            {% endif %}
+                                        </p>
                                     </div>
                                 </a>
                             </div>

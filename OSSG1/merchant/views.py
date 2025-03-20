@@ -221,3 +221,33 @@ class DeleteProductView(MerchantRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "商品已成功删除")
         return super().delete(request, *args, **kwargs)
+
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def approve_refund(request, order_id):
+    """ 商家同意退款，订单状态改为 'Refunded' """
+    order = get_object_or_404(Order, id=order_id, seller=request.user)
+
+    if order.status == 'Refunding':
+        order.status = 'Refunded'
+        order.save()
+        messages.success(request, "退款已批准，订单已退款。")
+    else:
+        messages.error(request, "当前订单状态无法执行退款操作。")
+
+    return redirect('merchant:order_detail', order_id=order.id)
+
+@login_required
+def reject_refund(request, order_id):
+    """ 商家拒绝退款，订单状态回到 'Shipped' """
+    order = get_object_or_404(Order, id=order_id, seller=request.user)
+
+    if order.status == 'Refunding':
+        order.status = 'Shipped'
+        order.save()
+        messages.info(request, "退款请求被拒绝，订单恢复到已发货状态。")
+    else:
+        messages.error(request, "当前订单状态无法拒绝退款。")
+
+    return redirect('merchant:order_detail', order_id=order.id)

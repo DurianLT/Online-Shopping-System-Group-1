@@ -13,14 +13,16 @@
         <p><strong>创建时间:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
         <p><strong>订单状态:</strong> 
             <span class="badge 
-                {% if order.status == 'Pending' %}bg-warning
-                {% elif order.status == 'Paid' %}bg-success
-                {% elif order.status == 'Shipped' %}bg-primary
-                {% elif order.status == 'Completed' %}bg-secondary
-                {% elif order.status == 'Cancelled' %}bg-danger
-                {% endif %}">
-                {{ order.get_status_display }}
-            </span>
+            {% if order.status == 'Pending' %}bg-warning
+            {% elif order.status == 'Paid' %}bg-success
+            {% elif order.status == 'Shipped' %}bg-primary
+            {% elif order.status == 'Completed' %}bg-secondary
+            {% elif order.status == 'Cancelled' %}bg-danger
+            {% elif order.status == 'Refunding' %}bg-info
+            {% elif order.status == 'Refunded' %}bg-dark
+            {% endif %}">
+            {{ order.get_status_display }}
+        </span>
         </p>
         <p><strong>收货地址:</strong> {{ order.address.address }}</p>
     </div>
@@ -52,18 +54,36 @@
 
     <!-- 订单状态操作 -->
     {% if order.status == 'Paid' %}
-        <form method="post" action="{% url 'merchant:ship_order' order.id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">标记为已发货</button>
-        </form>
+    <form method="post" action="{% url 'merchant:ship_order' order.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">标记为已发货</button>
+    </form>
 
     {% elif order.status == 'Shipped' %}
         <span class="btn btn-secondary disabled">等待买家确认收货</span>
+
     {% elif order.status == 'Completed' %}
         <span class="btn btn-success disabled">订单已完成</span>
+
     {% elif order.status == 'Cancelled' %}
         <span class="btn btn-danger disabled">订单已取消</span>
+
+    {% elif order.status == 'Refunding' %}
+        <div class="d-flex gap-3">
+            <form method="post" action="{% url 'merchant:approve_refund' order.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">同意退款</button>
+            </form>
+            <form method="post" action="{% url 'merchant:reject_refund' order.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">拒绝退款</button>
+            </form>
+        </div>
+
+    {% elif order.status == 'Refunded' %}
+        <span class="btn btn-dark disabled">订单已退款</span>
     {% endif %}
+
 
 
 </div>
