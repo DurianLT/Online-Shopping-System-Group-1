@@ -63,12 +63,12 @@ from django.shortcuts import render
 
 def order_list(request):
     status_filter = request.GET.get("status", "")
-    orders = Order.objects.filter(seller=request.user).order_by("-created_at")
+    orders = Order.objects.filter(user=request.user).order_by("-created_at")
 
     if status_filter:
         orders = orders.filter(status=status_filter)
 
-    return render(request, "merchant/order_list.html", {
+    return render(request, "order/order_list.html", {
         "orders": orders,
         "status_filter": status_filter
     })
@@ -76,8 +76,10 @@ def order_list(request):
 from django.shortcuts import render, get_object_or_404
 
 def order_detail(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)  # 确保订单属于当前用户
-    return render(request, "order/order_detail.html", {"order": order})
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    status_histories = order.status_histories.all()
+    return render(request, "order/order_detail.html", {"order": order, "status_histories": status_histories})
+
 
 @login_required
 def confirm_order(request):

@@ -63,11 +63,26 @@
                 {% endfor %}
             </tbody>
         </table>
-        
+
         <!-- 订单总价 -->
         <div class="text-end mt-3">
             <h4 class="fw-bold">订单总额: ¥{{ order.total_amount }}</h4>
         </div>
+    </div>
+
+    <div class="card p-4 mt-4 shadow-sm">
+        <h4 class="fw-bold">状态变更历史</h4>
+        {% if status_histories %}
+        <ul class="list-group">
+            {% for history in status_histories %}
+            <li class="list-group-item">
+                <strong>{{ history.get_status_display }}:</strong> {{ history.changed_at|date:"Y-m-d H:i" }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">暂无状态变更记录</p>
+        {% endif %}
     </div>
 
     <!-- 订单操作按钮 -->
