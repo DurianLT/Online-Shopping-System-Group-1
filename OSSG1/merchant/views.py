@@ -71,7 +71,6 @@ class AddProductView(MerchantRequiredMixin, CreateView):
     success_url = reverse_lazy("merchant:product_list")
 
     def form_valid(self, form):
-        print("2222222")
         form.instance.user = self.request.user  # 设置商家为当前用户
         response = super().form_valid(form)
 
@@ -179,6 +178,9 @@ class OrderDetailView(MerchantRequiredMixin, DetailView):
         return context
 
 
+from django.http import JsonResponse
+
+
 class EditProductView(MerchantRequiredMixin, UpdateView):
     """ 商家编辑商品 """
     model = Product
@@ -191,25 +193,46 @@ class EditProductView(MerchantRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["product_form"] = ProductForm(instance=self.object)
-        context["pricing_form"] = PricingForm(instance=self.object.pricing)
+        context["product_form"] = ProductForm(instance=self.get_object())  # 使用 get_object()
+        context["pricing_form"] = PricingForm(instance=self.get_object().pricing)
         return context
 
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        pricing = get_object_or_404(Pricing, product=self.object)
-        pricing_form = PricingForm(self.request.POST, instance=pricing)
+    def post(self, request, *args, **kwargs):
+        # 確保 self.object 正確初始化
+        self.object = self.get_object()
 
-        if pricing_form.is_valid():
-            pricing_form.save()
+        # 處理刪除圖片請求
+        delete_image_id = request.POST.get("delete_image")
+        if delete_image_id:
+            try:
+                image_instance = ProductImage.objects.get(
+                    id=delete_image_id,
+                    product=self.object,
+                    is_primary=False
+                )
+                image_instance.delete()
+                return JsonResponse({"status": "success", "message": "圖片刪除成功"})
+            except ProductImage.DoesNotExist:
+                return JsonResponse({"status": "error", "message": "圖片不存在或無權限刪除"}, status=404)
 
-        # 处理图片
-        images = self.request.FILES.getlist("images")
+        # 替換主圖
+        primary_image = request.FILES.get("replace_primary_image")
+        if primary_image:
+            primary_image_instance = self.object.images.filter(is_primary=True).first()
+            if primary_image_instance:
+                primary_image_instance.image = primary_image
+                primary_image_instance.save()
+
+        # 添加非主圖
+        images = request.FILES.getlist("images")
         for image in images:
             ProductImage.objects.create(product=self.object, image=image)
 
-        messages.success(self.request, "商品信息已更新！")
-        return response
+        messages.success(request, "商品信息已更新！")
+        return super().post(request, *args, **kwargs)
+
+
+
 
 
 class ShipOrderView(MerchantRequiredMixin, View):

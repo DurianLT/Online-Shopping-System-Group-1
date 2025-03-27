@@ -75,11 +75,11 @@
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">商品图片</h4>
             <div class="mb-3" id="image-container">
-                <label for="images">上传图片</label>
                 <input type="file" name="images" class="form-control" required>
             </div>
-            <button type="button" class="btn btn-info" id="add-image-btn">添加更多图片</button>
+            <button type="button" class="btn btn-info mt-2" id="add-image-btn">添加非主圖圖片</button>
         </div>
+
 
         <!-- 定价信息 -->
         <div class="card p-4 mt-4 shadow-sm">
@@ -95,12 +95,53 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // SKU 生成
     let skuField = document.querySelector("#id_sku");
 
     function generateSKU() {
         return "SKU-" + Math.random().toString(36).substr(2, 8).toUpperCase();
     }
 
+    // 圖片上傳邏輯
+    let imageContainer = document.querySelector("#image-container");
+    let addImageBtn = document.querySelector("#add-image-btn");
+
+    // 添加圖片上傳框
+    addImageBtn.addEventListener("click", function() {
+        // 創建包裝容器
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("d-flex", "align-items-center", "mt-2");
+
+        // 創建新的圖片上傳框
+        const newImageInput = document.createElement("input");
+        newImageInput.type = "file";
+        newImageInput.name = "images";
+        newImageInput.classList.add("form-control", "me-2");
+
+        // 創建刪除按鈕
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.classList.add("btn", "btn-danger", "btn-sm");
+        deleteBtn.textContent = "删除";
+
+        // 刪除圖片上傳框事件
+        deleteBtn.addEventListener("click", function() {
+            imageContainer.removeChild(wrapper);
+        });
+
+        // 組合元素
+        wrapper.appendChild(newImageInput);
+        wrapper.appendChild(deleteBtn);
+        imageContainer.appendChild(wrapper);
+    });
+
+    // 添加主圖標籤
+    const primaryLabel = document.createElement("span");
+    primaryLabel.classList.add("text-primary", "fw-bold", "mb-1", "d-block");
+    primaryLabel.textContent = "主图";
+    imageContainer.insertBefore(primaryLabel, imageContainer.firstChild);
+
+    // 分類級聯邏輯
     let level1Field = document.querySelector("#id_category_level1");
     let level2Field = document.querySelector("#id_category_level2");
     let level3Field = document.querySelector("#id_category_level3");
@@ -113,6 +154,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let customCategoryInput2 = document.querySelector("#custom_category_level2");
     let customCategoryInput3 = document.querySelector("#custom_category_level3");
 
+    // 獲取子分類
     function fetchSubcategories(parentId, level, targetField, nextCustomBtn) {
         fetch(`/merchant/get_subcategories/?parent_id=${parentId}&level=${level}`)
             .then(response => response.json())
@@ -123,11 +165,12 @@ document.addEventListener("DOMContentLoaded", function() {
                         targetField.add(new Option(item.name, item.id));
                     });
                     targetField.disabled = false;
-                    nextCustomBtn.disabled = false; // 选择了上级分类后，启用下一级的自定义按钮
+                    nextCustomBtn.disabled = false;
                 }
             });
     }
 
+    // 處理分類變更
     level1Field.addEventListener("change", function() {
         level2Field.innerHTML = '<option value="">选择二级分类</option>';
         level3Field.innerHTML = '<option value="">选择三级分类</option>';
@@ -151,6 +194,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    // 啟用自定義分類
     function enableCustomCategory(level) {
         if (level === 1) {
             level1Field.disabled = true;
@@ -171,6 +215,7 @@ document.addEventListener("DOMContentLoaded", function() {
         skuField.value = generateSKU();
     }
 
+    // 自定義分類按鈕事件
     customCategory1.addEventListener("click", function() {
         enableCustomCategory(1);
     });
@@ -182,13 +227,15 @@ document.addEventListener("DOMContentLoaded", function() {
     customCategory3.addEventListener("click", function() {
         enableCustomCategory(3);
     });
-    
+
+    // 生成SKU按鈕
     document.querySelector("#generate-sku").addEventListener("click", function() {
         let skuField = document.querySelector("#id_sku");
         let randomSku = "SKU-" + Math.random().toString(36).substr(2, 8).toUpperCase();
         skuField.value = randomSku;
     });
 });
+
 </script>
 
 
