@@ -125,10 +125,10 @@ class ProductSearchView(ListView):
         if query:
             # 使用 Q 查询来处理多个条件，忽略大小写进行模糊匹配
             return Product.objects.filter(
-                Q(name__icontains=query) | Q(description__icontains=query)
+                Q(hidden=False) & (Q(name__icontains=query) | Q(description__icontains=query))
             )
         else:
-            return Product.objects.all()  # 如果没有输入搜索条件，则返回所有商品
+            return Product.objects.filter(hidden=False)  # 如果没有输入搜索条件，则返回所有商品
 
 from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3
 
@@ -161,13 +161,13 @@ from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3, Product
 def category_detail(request, category_id, level=1):
     if level == 1:
         category = get_object_or_404(CategoryLevel1, pk=category_id)
-        products = Product.objects.filter(category_level1=category)
+        products = Product.objects.filter(hidden=False, category_level1=category)
     elif level == 2:
         category = get_object_or_404(CategoryLevel2, pk=category_id)
-        products = Product.objects.filter(category_level2=category)
+        products = Product.objects.filter(hidden=False, category_level2=category)
     elif level == 3:
         category = get_object_or_404(CategoryLevel3, pk=category_id)
-        products = Product.objects.filter(category_level3=category)
+        products = Product.objects.filter(hidden=False, category_level3=category)
     
     return render(request, 'products/category_detail.html', {'category': category, 'products': products})
 

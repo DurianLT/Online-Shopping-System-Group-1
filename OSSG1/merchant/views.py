@@ -150,7 +150,6 @@ class OrderListView(MerchantRequiredMixin, ListView):
         return context
 
 
-
 class OrderDetailView(MerchantRequiredMixin, DetailView):
     """ 商家查看订单详情 """
     model = Order
@@ -158,6 +157,26 @@ class OrderDetailView(MerchantRequiredMixin, DetailView):
 
     def get_object(self, queryset=None):
         return get_object_or_404(Order, id=self.kwargs["order_id"], seller=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 传递订单状态变更历史到模板
+        context["status_histories"] = self.object.status_histories.all().order_by("-changed_at")
+
+        # 计算商品列表中的小计
+        items_with_subtotal = []
+        for item in self.object.items.all():
+            item_dict = {
+                "product": item.product,
+                "price": item.price,
+                "quantity": item.quantity,
+                "subtotal": item.price * item.quantity,
+            }
+            items_with_subtotal.append(item_dict)
+
+        # 将计算好的商品列表添加到上下文中
+        context["items"] = items_with_subtotal
+        return context
 
 
 class EditProductView(MerchantRequiredMixin, UpdateView):

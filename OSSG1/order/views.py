@@ -78,7 +78,24 @@ from django.shortcuts import render, get_object_or_404
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     status_histories = order.status_histories.all()
-    return render(request, "order/order_detail.html", {"order": order, "status_histories": status_histories})
+
+    # 計算每個商品的小計，生成新的列表
+    items_with_subtotal = []
+    for item in order.items.all():
+        item_dict = {
+            "product": item.product,
+            "price": item.price,
+            "quantity": item.quantity,
+            "subtotal": item.price * item.quantity,
+        }
+        items_with_subtotal.append(item_dict)
+
+    return render(request, "order/order_detail.html", {
+        "order": order,
+        "items": items_with_subtotal,
+        "status_histories": status_histories,
+    })
+
 
 
 @login_required
@@ -144,6 +161,7 @@ def checkout_single_product(request, product_id):
 
     # 计算价格
     price = product.pricing.discount if product.pricing.discount else product.pricing.price
+    subtotal = price * quantity
     total_price = price * quantity
 
     # 获取用户的所有地址
@@ -154,7 +172,8 @@ def checkout_single_product(request, product_id):
         "quantity": quantity,
         "price": price,
         "total_price": total_price,
-        "addresses": addresses
+        "addresses": addresses,
+        "subtotal": subtotal
     })
 
 
