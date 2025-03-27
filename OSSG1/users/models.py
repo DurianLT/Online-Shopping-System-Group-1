@@ -82,8 +82,38 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     address = models.ForeignKey('Address', on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
 
+    def save(self, *args, **kwargs):
+        # 如果订单状态变更，记录状态变化
+        if self.pk and Order.objects.filter(pk=self.pk).exists():
+            old_status = Order.objects.get(pk=self.pk).status
+            if old_status != self.status:
+                OrderStatusHistory.objects.create(order=self, status=self.status)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Order {self.id} - {self.status} - {self.seller.username}"
+
+
+from django.db import models
+
+class OrderStatusHistory(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', '待支付'),
+        ('Paid', '已支付'),
+        ('Shipped', '已发货'),
+        ('Completed', '已完成'),
+        ('Cancelled', '已取消'),
+        ('Refunding', '退款中'),  # 新增退款中状态
+        ('Refunded', '已退款'),  # 新增已退款状态
+    ]
+
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name="status_histories")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order {self.order.id} - {self.status} at {self.changed_at}"
+
 
 
 class OrderItem(models.Model):

@@ -13,14 +13,16 @@
         <p><strong>创建时间:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
         <p><strong>订单状态:</strong> 
             <span class="badge 
-                {% if order.status == 'Pending' %}bg-warning
-                {% elif order.status == 'Paid' %}bg-success
-                {% elif order.status == 'Shipped' %}bg-primary
-                {% elif order.status == 'Completed' %}bg-secondary
-                {% elif order.status == 'Cancelled' %}bg-danger
-                {% endif %}">
-                {{ order.get_status_display }}
-            </span>
+            {% if order.status == 'Pending' %}bg-warning
+            {% elif order.status == 'Paid' %}bg-success
+            {% elif order.status == 'Shipped' %}bg-primary
+            {% elif order.status == 'Completed' %}bg-secondary
+            {% elif order.status == 'Cancelled' %}bg-danger
+            {% elif order.status == 'Refunding' %}bg-info
+            {% elif order.status == 'Refunded' %}bg-dark
+            {% endif %}">
+            {{ order.get_status_display }}
+        </span>
         </p>
     </div>
 
@@ -61,11 +63,26 @@
                 {% endfor %}
             </tbody>
         </table>
-        
+
         <!-- 订单总价 -->
         <div class="text-end mt-3">
             <h4 class="fw-bold">订单总额: ¥{{ order.total_amount }}</h4>
         </div>
+    </div>
+
+    <div class="card p-4 mt-4 shadow-sm">
+        <h4 class="fw-bold">状态变更历史</h4>
+        {% if status_histories %}
+        <ul class="list-group">
+            {% for history in status_histories %}
+            <li class="list-group-item">
+                <strong>{{ history.get_status_display }}:</strong> {{ history.changed_at|date:"Y-m-d H:i" }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">暂无状态变更记录</p>
+        {% endif %}
     </div>
 
     <!-- 订单操作按钮 -->
@@ -76,11 +93,18 @@
         {% elif order.status == 'Paid' %}
             <span class="btn btn-secondary btn-lg disabled">已支付</span>
         {% elif order.status == 'Shipped' %}
-            <a href="{% url 'orders:confirm_receipt' order.id %}" class="btn btn-primary btn-lg">确认收货</a>
+            <a href="{% url 'confirm_receipt' order.id %}" class="btn btn-primary btn-lg">确认收货</a>
         {% elif order.status == 'Completed' %}
             <span class="btn btn-success btn-lg disabled">已完成</span>
         {% elif order.status == 'Cancelled' %}
             <span class="btn btn-danger btn-lg disabled">已取消</span>
+        {% endif %}
+        {% if order.status == 'Paid' or order.status == 'Shipped' %}
+            <a href="{% url 'request_refund' order.id %}" class="btn btn-warning btn-lg">请求退款</a>
+        {% elif order.status == 'Refunding' %}
+            <div class="alert alert-info">退款处理中，请耐心等待。</div>
+        {% elif order.status == 'Refunded' %}
+            <div class="alert alert-success">退款已完成。</div>
         {% endif %}
     </div>
 

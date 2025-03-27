@@ -62,15 +62,24 @@ def order_from_cart(request):
 from django.shortcuts import render
 
 def order_list(request):
+    status_filter = request.GET.get("status", "")
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
-    return render(request, "order/order_list.html", {"orders": orders})
 
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+
+    return render(request, "order/order_list.html", {
+        "orders": orders,
+        "status_filter": status_filter
+    })
 
 from django.shortcuts import render, get_object_or_404
 
 def order_detail(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)  # 确保订单属于当前用户
-    return render(request, "order/order_detail.html", {"order": order})
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    status_histories = order.status_histories.all()
+    return render(request, "order/order_detail.html", {"order": order, "status_histories": status_histories})
+
 
 @login_required
 def confirm_order(request):
@@ -179,3 +188,23 @@ def order_single_product(request, product_id):
 
         messages.success(request, "订单创建成功！")
         return redirect("order_list")
+
+@login_required
+def request_refund(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    if order.status in ['Paid', 'Shipped']:
+        order.status = 'Refunding'
+        order.save()
+        messages.success(request, "退款申请已提交，等待商家处理。")
+    else:
+        messages.error(request, "当前订单状态无法申请退款。")
+
+    return redirect('order_detail', order_id=order.id)
+
+def confirm_receipt(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user, status="Shipped")
+    order.status = "Completed"
+    order.save()
+    messages.success(request, "订单已确认收货")
+    return redirect("order_detail", order_id=order.id)

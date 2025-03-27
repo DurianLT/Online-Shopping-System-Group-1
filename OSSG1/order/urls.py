@@ -1,7 +1,8 @@
 from django.urls import path
 
-from order.views import order_from_cart, order_list, order_detail, confirm_order, checkout_single_product, \
-    order_single_product
+from order.views import confirm_receipt, order_from_cart, order_list, order_detail, confirm_order, checkout_single_product, \
+    order_single_product, request_refund
+
 
 urlpatterns = [
     path('order_from_cart/', order_from_cart, name="order_from_cart"),
@@ -10,4 +11,6 @@ urlpatterns = [
     path('confirm_order/', confirm_order, name="confirm_order"),
     path('checkout_single_product/<int:product_id>/', checkout_single_product, name="checkout_single_product"),  # 进入订单确认
     path('order_single_product/<int:product_id>/', order_single_product, name="order_single_product"),  # 提交订单
+    path('order/<int:order_id>/request_refund/', request_refund, name='request_refund'),
+    path('order/<int:order_id>/confirm_receipt/', confirm_receipt, name="confirm_receipt"),
 ]

@@ -1,7 +1,7 @@
 from django.urls import path
 from merchant.views import (
     MerchantDashboardView, ProductListView, AddProductView, GetSubcategoriesView,
-    EditProductView, DeleteProductView, OrderListView, OrderDetailView, ShipOrderView
+    EditProductView, DeleteProductView, OrderListView, OrderDetailView, ShipOrderView, approve_refund, reject_refund
 )
 
 app_name = "merchant"
@@ -16,4 +16,6 @@ urlpatterns = [
     path("orders/<int:order_id>/", OrderDetailView.as_view(), name="order_detail"),
     path("orders/<int:order_id>/ship/", ShipOrderView.as_view(), name="ship_order"),
     path("get_subcategories/", GetSubcategoriesView.as_view(), name="get_subcategories"),
+    path('order/<int:order_id>/approve_refund/', approve_refund, name='approve_refund'),
+    path('order/<int:order_id>/reject_refund/', reject_refund, name='reject_refund'),
 ]
