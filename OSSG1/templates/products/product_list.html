@@ -99,7 +99,7 @@ window.addEventListener('scroll', function () {
     if (loading) return;
 
     // 判断滚动位置
-    if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
+    if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 5) && !loading) {
         loadMoreProducts();
     }
 });
