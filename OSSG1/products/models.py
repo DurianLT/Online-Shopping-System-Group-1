@@ -69,14 +69,32 @@ class ProductAttribute(models.Model):
 
 
 # 存储商品图片信息
+import os
+import uuid
+from django.utils.deconstruct import deconstructible
+
+@deconstructible
+class PathAndRename:
+    def __init__(self, sub_path):
+        self.sub_path = sub_path
+
+    def __call__(self, instance, filename):
+        ext = filename.split('.')[-1]
+        filename = f"{uuid.uuid4().hex}.{ext}"  # 使用隨機名稱
+        return os.path.join(self.sub_path, filename)
+
+path_and_rename_product_image = PathAndRename("product_images/")
+
+# 存储商品图片信息
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to='product_images/', default='default_image.jpg')  # 手动定义一个默认图片路径
+    image = models.ImageField(upload_to=path_and_rename_product_image, default='default_image.jpg')
     is_primary = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Image of {self.product.name}"
+
 
 
 
