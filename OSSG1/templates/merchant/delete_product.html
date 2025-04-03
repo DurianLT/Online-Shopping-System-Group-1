@@ -8,7 +8,12 @@
 
     <div class="card p-4 mt-4 shadow-sm">
         <h4>商品名称: {{ product.name }}</h4>
-        <p><strong>分类:</strong> {{ product.category.name }}</p>
+        <p><strong>分类：</strong>
+            {% if product.category_level1 %}{{ product.category_level1.name }}{% endif %}
+            {% if product.category_level2 %}{% if product.category_level1 %} > {% endif %}{{ product.category_level2.name }}{% endif %}
+            {% if product.category_level3 %}{% if product.category_level1 or product.category_level2 %} > {% endif %}{{ product.category_level3.name }}{% endif %}
+        </p>
+
         <p><strong>价格:</strong> ¥{{ product.pricing.price }}</p>
         <p class="text-muted">此操作不可撤销，确认删除该商品吗？</p>
 

@@ -137,7 +137,21 @@
         <div class="col-md-7">
             <h1 class="fw-bold">{{ product.name }}</h1>
             <p class="text-muted">SKU: {{ product.sku }}</p>
-            <p><strong>分类：</strong>{{ product.category.name }}</p>
+            <p><strong>分类：</strong>
+                {% if product.category_level1 %}
+                <a href="{% url 'category_detail' product.category_level1.id %}">{{ product.category_level1.name }}</a>
+                {% endif %}
+                {% if product.category_level2 %}
+                {% if product.category_level1 %} > {% endif %}
+                <a href="{% url 'category_detail' product.category_level2.id %}">{{ product.category_level2.name }}</a>
+                {% endif %}
+                {% if product.category_level3 %}
+                {% if product.category_level1 or product.category_level2 %} > {% endif %}
+                <a href="{% url 'category_detail' product.category_level3.id %}">{{ product.category_level3.name }}</a>
+                {% endif %}
+            </p>
+
+
 
             <!-- 商品标签属性展示 -->
             <div class="mt-3">
