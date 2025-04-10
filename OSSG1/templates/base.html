@@ -126,6 +126,18 @@
             transform: none !important;
         }
 
+         /* 响应式：当屏幕宽度小于768px时，隐藏轮播图并将分类改为下拉菜单 */
+         @media (max-width: 800px) {
+            /*搜索栏效果*/
+            .search-bar {
+                width: 200px;
+                max-width: 100%;
+            }
+            .auther {
+                display: none;
+            }
+        }
+
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -142,6 +154,7 @@
             </form>
         </div>
 
+        <div class = "auther">
             {% if user.is_authenticated %}
                 <div class="nav-item dropdown dropdown-hover me-3">
                     <a href="#" class="nav-link dropdown-toggle" role="button">
@@ -156,7 +169,7 @@
                             <li><a href="{% url 'order_list' %}"><i class="fas fa-box"></i> Orders</a></li>
                         </ul>
                         <a class="btn btn-outline-dark w-100" href="#" onclick="document.getElementById('logout-form').submit(); return false;">
-                            <i class="fas fa-sign-out-alt"></i> 退出登录
+                            <i class="fas fa-sign-out-alt"></i> logout
                         </a>
                         <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
                             {% csrf_token %}
@@ -166,7 +179,7 @@
                 
             {% else %}
                 <a class="btn btn-outline-light" href="{% url 'login' %}">
-                    <i class="fas fa-sign-in-alt"></i> 登录
+                    <i class="fas fa-sign-in-alt"></i> login
                 </a>
             {% endif %}
         </div>

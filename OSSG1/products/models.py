@@ -96,8 +96,6 @@ class ProductImage(models.Model):
         return f"Image of {self.product.name}"
 
 
-
-
 # 存储商品定价信息
 class Pricing(models.Model):
     product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name="pricing")

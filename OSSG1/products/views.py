@@ -10,28 +10,30 @@ from django.core.paginator import Paginator
 
 class ProductListView(ListView):
     model = Product
-    template_name = 'product_list.html'  # 显示产品的模板
+    template_name = 'product_list.html'
     context_object_name = 'products'
-    paginate_by = 8  # 每页8个商品
+    paginate_by = 8
 
     def get_queryset(self):
         queryset = Product.objects.all().filter(hidden=False).order_by('created_at')
-
-        # 基于三级分类筛选
         level3_id = self.kwargs.get('level3_id')
+        level2_id = self.kwargs.get('level2_id')
+        level1_id = self.kwargs.get('level1_id')
+
         if level3_id:
             queryset = queryset.filter(category_level3_id=level3_id)
-
-        # 如果没有选择三级分类，允许选择一级或二级分类
-        level2_id = self.kwargs.get('level2_id')
-        if level2_id:
+        elif level2_id:
             queryset = queryset.filter(category_level2_id=level2_id)
-
-        level1_id = self.kwargs.get('level1_id')
-        if level1_id:
+        elif level1_id:
             queryset = queryset.filter(category_level1_id=level1_id)
 
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 预加载所有分类，减少数据库查询次数
+        context['category_level1_list'] = CategoryLevel1.objects.prefetch_related('subcategories__subcategories')
+        return context
 
 
 
