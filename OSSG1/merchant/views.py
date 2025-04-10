@@ -7,7 +7,8 @@ from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from merchant.decorators import merchant_required
 from django.utils.decorators import method_decorator
-from products.models import Product, Pricing, ProductImage, CategoryLevel1, CategoryLevel2, CategoryLevel3
+from products.models import Product, Pricing, ProductImage, CategoryLevel1, CategoryLevel2, CategoryLevel3, \
+    ProductAttribute
 from users.models import Order
 from merchant.forms import ProductForm, PricingForm
 from django.db.models import Q
@@ -90,18 +91,29 @@ class AddProductView(MerchantRequiredMixin, CreateView):
             pricing.product = self.object
             pricing.save()
 
-        # 处理图片上传
-        images = self.request.FILES.getlist("images")
-        is_primary_set = False
-        for image in images:
-            product_image = ProductImage(product=self.object, image=image)
-            if not is_primary_set:
-                product_image.is_primary = True
-                is_primary_set = True
-            product_image.save()
+            # 处理图片上传
+            images = self.request.FILES.getlist("images")
+            is_primary_set = False
+            for image in images:
+                product_image = ProductImage(product=self.object, image=image)
+                if not is_primary_set:
+                    product_image.is_primary = True
+                    is_primary_set = True
+                product_image.save()
 
-        messages.success(self.request, "商品添加成功！")
-        return response
+            # 获取并保存标签
+            tags = self.request.POST.get("tags", "").split(",")  # 获取标签并分割
+            for tag in tags:
+                if tag:  # 过滤空标签
+                    key, value = tag.split(":")  # 假设每个标签是以 'key: value' 格式
+                    ProductAttribute.objects.create(
+                        product=self.object,
+                        key=key.strip(),
+                        value=value.strip()
+                    )
+
+            messages.success(self.request, "商品添加成功！")
+            return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -125,6 +137,32 @@ class GetSubcategoriesView(View):
             subcategories = list(CategoryLevel3.objects.filter(parent_id=parent_id).values("id", "name"))
 
         return JsonResponse(subcategories, safe=False)
+
+
+
+# views.py
+from django.http import JsonResponse
+
+RECOMMENDED_TAGS = {
+    "休闲": ["品牌", "材质", "型号", "颜色", "适用年龄", "适用性别"],
+    "体育": ["品牌", "型号", "运动种类", "颜色", "适用年龄", "适用性别"],
+    "医药品": ["品牌", "型号", "适用年龄", "适用性别"],
+    "文具": ["品牌", "型号", "颜色"],
+    "玩具": ["品牌", "适用年龄", "适用性别", "材质", "型号", "颜色"],
+    "生活用品": ["品牌", "材质", "型号", "颜色", "适用年龄", "适用性别", "适用人数"],
+    "电子产品": ["品牌", "型号", "内存", "CPU", "储存", "颜色"],
+    "食品": ["品牌", "味道", "地区"]
+}
+
+
+class GetRecommendedTagsView(View):
+    def get(self, request, *args, **kwargs):
+        category_name = request.GET.get("category_name")
+        tags = RECOMMENDED_TAGS.get(category_name, [])
+        return JsonResponse(tags, safe=False)
+
+
+
 
 
 class OrderListView(MerchantRequiredMixin, ListView):
