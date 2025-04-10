@@ -220,6 +220,31 @@
         </div>
     </div>
 </div>
+
+<h2>用户评价</h2>
+{% for review in reviews %}
+    <div style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
+        <strong>用户:</strong> {{ review.user.username }}<br>
+        <strong>订单编号:</strong> {{ review.order_item.order.id }}<br>
+        <strong>评分:</strong> {{ review.rating }} 星<br>
+        <strong>内容:</strong> {{ review.comment }}<br>
+        <strong>时间:</strong> {{ review.created_at|date:"Y-m-d H:i" }}<br>
+
+        {% if review.user == request.user %}
+            <a href="{% url 'review_update' review.id %}">编辑</a> |
+            <a href="{% url 'review_delete' review.id %}">删除</a>
+        {% endif %}
+    </div>
+{% empty %}
+    <p>暂无评价</p>
+{% endfor %}
+
+<h3>我要评价</h3>
+{% for item in can_review_items %}
+    <a href="{% url 'review_create' item.id %}">为订单 {{ item.order.id }} 添加评价</a><br>
+{% empty %}
+    <p>暂无可评价的订单</p>
+{% endfor %}
     
 <script>
     // 在点击 "立即购买" 时，将数量输入框的值复制到隐藏输入框

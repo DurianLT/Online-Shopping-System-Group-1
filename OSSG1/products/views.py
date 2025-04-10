@@ -42,6 +42,7 @@ from django.shortcuts import redirect
 from .models import Product
 
 from django.shortcuts import redirect
+from users.models import Review, OrderItem
 
 
 class ProductDetailView(DetailView):
@@ -52,15 +53,23 @@ class ProductDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        product = self.get_object()
 
-        # 检查用户是否登录
+        # 收藏状态
+        context['is_in_wishlist'] = False
         if user.is_authenticated:
-            product = self.get_object()
-            # 检查当前用户是否已收藏该商品
             context['is_in_wishlist'] = Wishlist.objects.filter(user=user, product=product).exists()
+
+        # 评价相关内容
+        order_items = product.order_items.all()
+        reviews = Review.objects.filter(order_item__in=order_items, parent_review=None).select_related('user', 'order_item', 'order_item__order')
+        context['reviews'] = reviews
+
+        # 当前用户能评价的订单项
+        if user.is_authenticated:
+            context['can_review_items'] = order_items.filter(order__user=user).exclude(reviews__user=user)
         else:
-            # 如果用户未登录，则无法收藏商品
-            context['is_in_wishlist'] = False
+            context['can_review_items'] = []
 
         return context
 
@@ -218,6 +227,49 @@ class ProductListApiView(ListView):
 
         return JsonResponse({'products': products_data})
 
+# views.py
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy, reverse
+from django.shortcuts import get_object_or_404
+from users.models import Review, OrderItem
+from .forms import ReviewForm
 
+class ReviewCreateView(CreateView):
+    model = Review
+    form_class = ReviewForm
+    template_name = 'reviews/review_form.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        self.order_item = get_object_or_404(OrderItem, pk=self.kwargs['pk'], order__user=request.user)
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.order_item = self.order_item
+        form.instance.author_type = "buyer"
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('product-detail', kwargs={'pk': self.order_item.product.pk})
+
+class ReviewUpdateView(UpdateView):
+    model = Review
+    form_class = ReviewForm
+    template_name = 'reviews/review_form.html'
+
+    def get_queryset(self):
+        return Review.objects.filter(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse('product-detail', kwargs={'pk': self.object.order_item.product.pk})
+
+class ReviewDeleteView(DeleteView):
+    model = Review
+    template_name = 'reviews/review_confirm_delete.html'
+
+    def get_queryset(self):
+        return Review.objects.filter(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse('product-detail', kwargs={'pk': self.object.order_item.product.pk})
 

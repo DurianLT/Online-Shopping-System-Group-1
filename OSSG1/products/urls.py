@@ -1,4 +1,4 @@
-from products.views import ProductListView, ProductDetailView, WishlistView, WishlistItemDeleteView, ProductSearchView, ProductListApiView
+from products.views import ProductListView, ProductDetailView, ReviewCreateView, ReviewDeleteView, ReviewUpdateView, WishlistView, WishlistItemDeleteView, ProductSearchView, ProductListApiView
 from django.urls import path
 from . import views
 
@@ -15,5 +15,9 @@ urlpatterns = [
     path('search/', ProductSearchView.as_view(), name='product_search'),
 
     path('api/products/', ProductListApiView.as_view(), name='product-list-api'),  # 这个API端点用于返回JSON数据
+
+    path('review/create/<int:pk>/', ReviewCreateView.as_view(), name='review_create'),
+    path('review/update/<int:pk>/', ReviewUpdateView.as_view(), name='review_update'),
+    path('review/delete/<int:pk>/', ReviewDeleteView.as_view(), name='review_delete'),
 
 ]
