@@ -4,191 +4,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}OSSG1 商城{% endblock %}</title>
+    <title>{% block title %}OSSG1 Mall{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 基本样式 */
-        body {
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-            background-color: #f5f5f5;
-            line-height: 1.6;
+        /* 上导航栏效果 */
+        .navbar-custom {
+            background-color: #343a40;
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link,
+        .navbar-custom {
+            color: white;
+        }
+        .navbar-custom .nav-link:hover,
+        .navbar-custom .btn:hover {
+            color: #ffc107;
         }
 
-        /* 页面布局 */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /*搜索栏效果*/
+        .search-bar {
+            width: 400px;
+            max-width: 100%;
+        }
+        .search-bar input {
+            border-radius: 50px 0 0 50px;
+            padding-left: 20px;
+        }
+        .search-bar button {
+            border-radius: 0 50px 50px 0;
         }
 
-        /* 顶部导航栏 */
-        .navbar {
-            padding: 10px 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        /*浮动右边栏效果*/
+        .floating-toolbar {
+            position: fixed;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            background-color: #f8f9fa;
+            border: 1px solid #ccc;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            padding: 10px;
+            box-shadow: -2px 2px 6px rgba(0,0,0,0.2);
+            z-index: 9999;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
         }
-
-        .navbar .navbar-brand {
-            font-size: 22px;
+        .floating-toolbar:hover {
+            opacity: 1;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0;
+            right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        .mode-label {
+            margin-left: 10px;
             font-weight: bold;
         }
 
-        .navbar .navbar-nav .nav-link {
-            font-size: 16px;
-            color: white;
-        }
-
-        .navbar .navbar-nav .nav-link:hover {
-            color: #ffe400;
-        }
-
-        /* 一级菜单：默认隐藏 */
-        .navbar .dropdown-menu {
-            min-width: 200px;
-            display: none; /* 默认隐藏 */
-            opacity: 0;
-            visibility: hidden;
-            position: absolute;
-            left: 0;
-            top: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        /* 鼠标悬停在一级菜单时显示对应的二级菜单 */
-        .navbar .dropdown:hover > .dropdown-menu {
-            display: block;
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* 二级菜单：默认隐藏 */
-        .dropdown-submenu .dropdown-menu {
-            left: 100%; /* 二级菜单偏移 */
-            top: 0;
-            display: none; /* 默认隐藏 */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease;
-        }
-
-        /* 鼠标悬停在二级菜单时显示对应的三级菜单 */
-        .dropdown-submenu:hover > .dropdown-menu {
-            display: block;
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* 子菜单样式 */
-        .dropdown-submenu {
-            position: relative;
-        }
-
-        /* 搜索框样式 */
-        .navbar .form-control {
-            width: 250px;
-            border-radius: 20px;
-            border: none;
-        }
-
-        .navbar .form-control:focus {
-            width: 300px;
-            outline: none;
-        }
-
-        /* 页脚样式 */
-        footer {
-            margin-top: 20px;
+        /* 下拉菜单效果 */
+        .dropdown-menu-custom {
+            width: 200px;
             padding: 20px;
-            background-color: #333;
-            color: white;
-            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border-top: 3px solid #fff;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            z-index: 1000;
         }
-
-        /* 响应式布局 */
-        @media (max-width: 768px) {
-            .navbar .form-control {
-                width: 180px;
-            }
+        .dropdown-menu-custom::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        .dropdown-hover:hover .dropdown-menu-custom {
+            display: block;
+        }
+        /* 适应屏幕右侧：向左展开菜单 */
+        .dropdown-menu-left-align {
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
         }
 
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">OSSG1 商城</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'product-list' %}">所有商品</a></li>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4">
+        <a class="navbar-brand me-3 btn" href="{% url 'product-list' %}">
+            <i class="fas fa-store "></i> OSSG1 Mall
+        </a>
+    
+        <div class="d-flex flex-grow-1 justify-content-center">
+            <form class="d-flex search-bar" action="{% url 'product_search' %}" method="GET">
+                <input class="form-control shadow-sm" type="search" name="q" placeholder="Search..." value="{{ request.GET.q }}">
+                <button class="btn btn-warning shadow-sm" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
 
-                    <!-- 商品分类下拉菜单 -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link" href="#" id="categoryDropdown" aria-expanded="false">
-                            商品分类
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
-                            {% for category1 in categories %}
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{% url 'category_detail' category1.id %}">{{ category1.name }}</a>
-                                    <ul class="dropdown-menu">
-                                        {% for category2 in category1.subcategories.all %}
-                                            <li class="dropdown-submenu">
-                                                <a class="dropdown-item" href="{% url 'category_level2_detail' category2.id %}">{{ category2.name }}</a>
-                                                <ul class="dropdown-menu">
-                                                    {% for category3 in category2.subcategories.all %}
-                                                        <li><a class="dropdown-item" href="{% url 'category_level3_detail' category3.id %}">{{ category3.name }}</a></li>
-                                                    {% endfor %}
-                                                </ul>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                </li>
-                            {% endfor %}
+            {% if user.is_authenticated %}
+                <div class="nav-item dropdown dropdown-hover me-3">
+                    <a href="#" class="nav-link dropdown-toggle" role="button">
+                        <i class="fas fa-user"></i> {{ user.username }}
+                    </a>
+                    <div id="userDropdownMenu" class="dropdown-menu-custom bg-white text-dark">
+                        <div class="fw-bold">{{ user.username }}</div>
+                        <hr>
+                        <ul class="list-unstyled">
+                            <li><a href="{% url 'cart_list' %}"><i class="fas fa-shopping-cart"></i> Carts</a></li>
+                            <li><a href="{% url 'wishlist' %}"><i class="fas fa-heart"></i> Favorites</a></li>
+                            <li><a href="{% url 'order_list' %}"><i class="fas fa-box"></i> Orders</a></li>
                         </ul>
-                    </li>
-                    {% if user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'cart_list' %}">购物车</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'wishlist' %}">收藏夹</a></li>                   
-                        <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">我的订单</a></li>
-                        <li class="nav-item"><a class="nav-link"  href="{% url 'user_profile' %}">欢迎，{{ user.username }}</a></li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" onclick="document.getElementById('logout-form').submit(); return false;">
-                                退出
-                            </a>
-                            <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
-                                {% csrf_token %}
-                            </form>
-                        </li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">登录</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">注册</a></li>
-                    {% endif %}
-                </ul>
-                <form class="d-flex" action="{% url 'product_search' %}" method="GET">
-                    <input class="form-control me-2" type="search" name="q" placeholder="搜索商品" value="{{ request.GET.q }}">
-                    <button class="btn btn-outline-light" type="submit">搜索</button>
-                </form>
-            </div>
+                        <a class="btn btn-outline-dark w-100" href="#" onclick="document.getElementById('logout-form').submit(); return false;">
+                            <i class="fas fa-sign-out-alt"></i> 退出登录
+                        </a>
+                        <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+                            {% csrf_token %}
+                        </form>
+                    </div>
+                </div>
+                
+            {% else %}
+                <a class="btn btn-outline-light" href="{% url 'login' %}">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </a>
+            {% endif %}
         </div>
     </nav>
+
+    <!-- 顶部栏内容 -->
+    <div id="display-section" class="bg-secondary text-white text-center py-2">
+        <div class="container d-flex justify-content-center gap-3">
+            <a href="{% url 'product-list' %}" class="text-white"><i class="fas fa-th"></i> All</a>
+            <a href="{% url 'cart_list' %}" class="text-white"><i class="fas fa-shopping-cart"></i> Carts</a>
+            <a href="{% url 'wishlist' %}" class="text-white"><i class="fas fa-heart"></i> Favorites</a>
+            <a href="{% url 'merchant:dashboard' %}" class="text-white"><i class="fas fa-dollar-sign"></i> Seller Center</a>
+        </div>
+    </div>
+
+    <!-- 浮动按钮 -->
+    <div class="floating-toolbar">
+        <div class="mb-1">Display Mode</div>
+        <label class="switch">
+            <input type="checkbox" id="modeToggle">
+            <span class="slider"></span>
+        </label>
+        <span class="mode-label" id="modeLabel">Complete</span>
+    </div>
 
     <div class="container mt-4">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}" role="alert">
-                    {{ message }}
-                </div>
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
-        
+
         {% block content %}{% endblock %}
     </div>
-    
+
     <footer class="bg-dark text-light text-center py-3 mt-4">
-        <p>&copy; 2025 OSSG1 商城. All rights reserved.</p>
+        &copy; 2025 OSSG1 Mall
     </footer>
+
+    {% comment %} 模式切换逻辑 {% endcomment %}
+    <script>  
+        const toggle = document.getElementById('modeToggle');
+        const displaySection = document.getElementById('display-section');
+        const modeLabel = document.getElementById('modeLabel');
+
+        toggle.addEventListener('change', function() {
+            if (this.checked) {
+                // 简洁模式：隐藏内容
+                displaySection.style.display = 'none';
+                modeLabel.textContent = 'Simple';
+            } else {
+                // 完整模式：显示内容
+                displaySection.style.display = 'block';
+                modeLabel.textContent = 'Complete';
+            }
+        });
+    </script>
+
+    {% comment %} 进行位置判断并动态调整类名 {% endcomment %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropdown = document.querySelector('.dropdown-hover');
+            const menu = document.getElementById('userDropdownMenu');
+    
+            dropdown.addEventListener('mouseenter', function () {
+                // 先显示菜单以计算宽度
+                menu.style.display = 'block';
+                const rect = menu.getBoundingClientRect();
+    
+                // 判断是否会超出屏幕右边界（例如距离右侧少于20px）
+                const rightOverflow = rect.right > window.innerWidth - 20;
+    
+                if (rightOverflow) {
+                    menu.classList.add('dropdown-menu-left-align');
+                }
+    
+                // 最后隐藏，等 hover 时由 CSS 控制显示
+                menu.style.display = '';
+            });
+        });
+    </script>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
