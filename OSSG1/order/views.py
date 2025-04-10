@@ -157,7 +157,7 @@ def checkout_single_product(request, product_id):
         quantity = int(quantity)
     except ValueError:
         messages.error(request, "无效的商品数量")
-        return redirect("product_detail", product_id=product.id)
+        return redirect("product-detail", pk=product.id)
 
     # 计算价格
     price = product.pricing.discount if product.pricing.discount else product.pricing.price
