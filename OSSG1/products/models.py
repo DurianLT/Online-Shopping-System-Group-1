@@ -52,8 +52,17 @@ class Product(models.Model):
     hidden = models.BooleanField(default=False)
     is_physical = models.BooleanField(default=True)
 
+    is_deleted = models.BooleanField(default=False)
+    stock_quantity = models.PositiveIntegerField(default=0)
+
     def __str__(self):
         return self.name
+
+    def soft_delete(self):
+        """将产品标记为已删除，而不是从数据库中移除。"""
+        self.is_deleted = True
+        self.save()
+
 
 
 class ProductAttribute(models.Model):
