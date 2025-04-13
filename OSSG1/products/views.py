@@ -43,6 +43,7 @@ from .models import Product
 
 from django.shortcuts import redirect
 from users.models import Review, OrderItem
+from django.db.models import Avg
 
 
 class ProductDetailView(DetailView):
@@ -64,6 +65,9 @@ class ProductDetailView(DetailView):
         order_items = product.order_items.all()
         reviews = Review.objects.filter(order_item__in=order_items, parent_review=None).select_related('user', 'order_item', 'order_item__order')
         context['reviews'] = reviews
+
+        avg_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+        context['avg_rating'] = round(avg_rating, 1)
 
         # 当前用户能评价的订单项
         if user.is_authenticated:
@@ -225,7 +229,10 @@ class ProductListApiView(ListView):
                 'discount_end_date': discount_end_date,  # 折扣结束日期
             })
 
-        return JsonResponse({'products': products_data})
+        return JsonResponse({
+            'products': products_data,
+            'total_products': products.count()
+        })
 
 # views.py
 from django.views.generic.edit import CreateView, UpdateView, DeleteView

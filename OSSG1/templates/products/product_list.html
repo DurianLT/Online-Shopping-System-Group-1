@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}商品列表{% endblock %}
+{% block title %}Product List{% endblock %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/products/product_list.css' %}">
@@ -151,7 +151,7 @@
             <!-- 商品分类下拉菜单 -->
             <div class="dropdown category-dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    商品分类
+                    Categories
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
                     {% for category1 in categories %}
@@ -252,8 +252,8 @@
             {% endfor %}
         </div>
 
-        <div id="loading" style="display:none;">正在加载...</div>
-        <div id="end-message" style="display:none;">到底了QAQ~</div>
+        <div id="loading" style="display:none;">Loading...</div>
+        <div id="end-message" style="display:none;">End QAQ~</div>
     </div>
 {% endblock %}
 
@@ -293,67 +293,80 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script>
     let currentPage = 1;
-let loading = false;
+    let totalPages = null;
+    let loading = false;
+    let allLoaded = false;
 
-// 检查是否滚动到页面底部
-window.addEventListener('scroll', function () {
-    if (loading) return;
+    function loadMoreProducts() {
+        if (loading || allLoaded) return;
 
-    // 判断滚动位置
-    if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 5) && !loading) {
-        loadMoreProducts();
-    }
-});
+        loading = true;
+        document.getElementById('loading').style.display = 'block';
 
-// 加载更多商品
-function loadMoreProducts() {
-    loading = true;
-    document.getElementById('loading').style.display = 'block';  // 显示加载提示
-
-    // 通过当前页码请求数据
-    fetch(`/api/products/?page=${currentPage+ 1}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.products.length/8 == 1) {
-                // 当前页码加 1
-                currentPage += 1;
-
+        fetch(`/api/products/?page=${currentPage + 1}`)
+            .then(response => response.json())
+            .then(data => {
                 const productList = document.getElementById('product-list');
-                data.products.forEach(product => {
-                    const productHTML = `
-                        <div class="col product-item">
-                            <div class="card h-100">
-                                <a href="/product/${product.id}" class="text-decoration-none">
-                                    <img src="${product.image_url}" class="card-img-top" alt="${product.name}">
-                                    <div class="card-body">
-                                        <h5 class="card-title text-dark">${product.name}</h5>
-                                        <p class="card-text text-muted">${product.description.slice(0, 50)}...</p>
-                                        <p class="text-danger fw-bold">
-                                            {% if product.pricing.discount %}
-                                                ¥${product.price} <del class="text-muted">¥${ product.discount }</del>
-                                            {% else %}
-                                                ¥${ product.price }
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                </a>
+
+                if (totalPages === null) {
+                    totalPages = Math.ceil(data.total_products / 8);
+                }
+
+                const products = data.products;
+
+                if (products.length > 0) {
+                    currentPage++;
+
+                    products.forEach(product => {
+                        const productHTML = `
+                            <div class="col product-item">
+                                <div class="card h-100">
+                                    <a href="/product/${product.id}" class="text-decoration-none">
+                                        <img src="${product.image_url}" class="card-img-top" alt="${product.name}">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-dark">${product.name}</h5>
+                                            <p class="card-text text-muted">${product.description.slice(0, 50)}...</p>
+                                            <p class="text-danger fw-bold">
+                                                ${product.discount 
+                                                    ? `¥${product.price} <del class="text-muted">¥${product.discount}</del>` 
+                                                    : `¥${product.price}`}
+                                            </p>
+                                        </div>
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                    productList.insertAdjacentHTML('beforeend', productHTML);
-                });
-            } else {
-                // 如果没有更多商品，显示"到底了"
-                document.getElementById('end-message').style.display = 'block';
-            }
-            document.getElementById('loading').style.display = 'none';  // 隐藏加载提示
-            loading = false;
-        })
-        .catch(error => {
-            console.error("加载商品时出错:", error);
-            document.getElementById('loading').style.display = 'none';
-            loading = false;
-        });
-}
+                        `;
+                        productList.insertAdjacentHTML('beforeend', productHTML);
+                    });
+
+                    if (currentPage >= totalPages) {
+                        allLoaded = true;
+                        document.getElementById('end-message').style.display = 'block';
+                    }
+                } else {
+                    allLoaded = true;
+                    document.getElementById('end-message').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error("加载商品时出错:", error);
+            })
+            .finally(() => {
+                loading = false;
+                document.getElementById('loading').style.display = 'none';
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMoreProducts();
+    });
+
+    window.addEventListener('scroll', function () {
+        if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 10)) {
+            loadMoreProducts();
+        }
+    });
 </script>
+
+    
 {% endblock %}
