@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import JsonResponse
@@ -48,7 +48,7 @@ class ProductListView(MerchantRequiredMixin, ListView):
     def get_queryset(self):
         """ 获取筛选后的产品列表 """
         query = self.request.GET.get("q", "").strip()
-        products = Product.objects.filter(user=self.request.user)
+        products = Product.objects.filter(user=self.request.user, is_deleted=False)
 
         if query:
             products = products.filter(
@@ -289,18 +289,24 @@ class ShipOrderView(MerchantRequiredMixin, View):
         return redirect("merchant:order_detail", order_id=order.id)
 
 
-class DeleteProductView(MerchantRequiredMixin, DeleteView):
-    """ 商家删除商品 """
-    model = Product
-    template_name = "merchant/delete_product.html"
-    success_url = reverse_lazy("merchant:product_list")
+from django.views import View
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
 
-    def get_object(self, queryset=None):
-        return get_object_or_404(Product, id=self.kwargs["product_id"], user=self.request.user)
+class DeleteProductView(MerchantRequiredMixin, View):
+    """ 商家软删除商品 """
+    def post(self, request, *args, **kwargs):
+        product = get_object_or_404(Product, id=kwargs["product_id"], user=request.user)
+        product.soft_delete()
+        messages.success(request, "商品已成功删除（软删除）")
+        return redirect("merchant:product_list")
 
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, "商品已成功删除")
-        return super().delete(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        """可选：用于渲染确认删除页面"""
+        product = get_object_or_404(Product, id=kwargs["product_id"], user=request.user)
+        return render(request, "merchant/delete_product.html", {"product": product})
+
+
 
 from django.contrib.auth.decorators import login_required
 

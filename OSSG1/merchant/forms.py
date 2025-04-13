@@ -37,7 +37,7 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = ['name', 'description', 'sku', 'hidden', 'is_physical',
                   'category_level1', 'category_level2', 'category_level3',
-                  'custom_category_level1', 'custom_category_level2', 'custom_category_level3']
+                  'custom_category_level1', 'custom_category_level2', 'custom_category_level3', 'stock_quantity']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
