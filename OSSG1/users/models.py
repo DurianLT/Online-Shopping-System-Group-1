@@ -81,6 +81,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     address = models.ForeignKey('Address', on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    inventory_handled = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         # 如果订单状态变更，记录状态变化
