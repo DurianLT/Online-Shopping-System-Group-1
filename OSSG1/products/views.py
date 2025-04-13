@@ -15,7 +15,7 @@ class ProductListView(ListView):
     paginate_by = 8
 
     def get_queryset(self):
-        queryset = Product.objects.all().filter(hidden=False).order_by('created_at')
+        queryset = Product.objects.all().filter(hidden=False, is_deleted=False).order_by('created_at')
         level3_id = self.kwargs.get('level3_id')
         level2_id = self.kwargs.get('level2_id')
         level1_id = self.kwargs.get('level1_id')
@@ -136,10 +136,10 @@ class ProductSearchView(ListView):
         if query:
             # 使用 Q 查询来处理多个条件，忽略大小写进行模糊匹配
             return Product.objects.filter(
-                Q(hidden=False) & (Q(name__icontains=query) | Q(description__icontains=query))
+                Q(hidden=False, is_deleted=False) & (Q(name__icontains=query) | Q(description__icontains=query))
             )
         else:
-            return Product.objects.filter(hidden=False)  # 如果没有输入搜索条件，则返回所有商品
+            return Product.objects.filter(hidden=False, is_deleted=False)  # 如果没有输入搜索条件，则返回所有商品
 
 from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3
 
@@ -172,13 +172,13 @@ from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3, Product
 def category_detail(request, category_id, level=1):
     if level == 1:
         category = get_object_or_404(CategoryLevel1, pk=category_id)
-        products = Product.objects.filter(hidden=False, category_level1=category)
+        products = Product.objects.filter(hidden=False, is_deleted=False, category_level1=category)
     elif level == 2:
         category = get_object_or_404(CategoryLevel2, pk=category_id)
-        products = Product.objects.filter(hidden=False, category_level2=category)
+        products = Product.objects.filter(hidden=False, is_deleted=False, category_level2=category)
     elif level == 3:
         category = get_object_or_404(CategoryLevel3, pk=category_id)
-        products = Product.objects.filter(hidden=False, category_level3=category)
+        products = Product.objects.filter(hidden=False, is_deleted=False, category_level3=category)
     
     return render(request, 'products/category_detail.html', {'category': category, 'products': products})
 
@@ -194,7 +194,7 @@ class ProductListApiView(ListView):
     def get(self, request, *args, **kwargs):
         page_number = request.GET.get('page', 1)
         # 添加排序条件，按创建时间排序
-        products = Product.objects.all().filter(hidden=False).order_by('created_at')  # 或者按其他字段排序
+        products = Product.objects.all().filter(hidden=False, is_deleted=False).order_by('created_at')  # 或者按其他字段排序
 
         paginator = Paginator(products, 8)  # 每页 8 个商品
         page_obj = paginator.get_page(page_number)
