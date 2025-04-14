@@ -381,46 +381,50 @@
                     {% endif %}
                 </p>
 
-                <div class="row">
-                    <div>
-                        <form method="post" action="{% url 'add_to_cart' product.id %}">
-                            {% csrf_token %}
-                            <div class="input-group" style="width: 160px;">
-                                <span class="input-group-text">Quantity</span>
-                                <input type="number" class="form-control" name="quantity" id="quantityInput" value="1" min="1" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-lg mt-3"><i class="fa-solid fa-cart-plus"></i> Add to the cart</button>
-                        </form>
-                    </div>
-                    <div>
-                        <form method="post" class="mt-3">
-                            {% csrf_token %}
-                            {% if user.is_authenticated %}
-                                {% if is_in_wishlist %}
-                                    <button type="submit" name="remove_from_wishlist" class="btn btn-wishlist btn-wishlist-add">
-                                        <i class="fa-solid fa-heart-crack"></i> Remove from favorites
-                                    </button>
+                {% if product.stock_quantity > 0 %}
+                    <div class="row">
+                        <div>
+                            <form method="post" action="{% url 'add_to_cart' product.id %}">
+                                {% csrf_token %}
+                                <div class="input-group" style="width: 160px;">
+                                    <span class="input-group-text">Quantity</span>
+                                    <input type="number" class="form-control" name="quantity" id="quantityInput" value="1" min="1" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg mt-3"><i class="fa-solid fa-cart-plus"></i> Add to the cart</button>
+                            </form>
+                        </div>
+                        <div>
+                            <form method="post" class="mt-3">
+                                {% csrf_token %}
+                                {% if user.is_authenticated %}
+                                    {% if is_in_wishlist %}
+                                        <button type="submit" name="remove_from_wishlist" class="btn btn-wishlist btn-wishlist-add">
+                                            <i class="fa-solid fa-heart-crack"></i> Remove from favorites
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" name="add_to_wishlist" class="btn btn-wishlist btn-wishlist-remove">
+                                            <i class="fa-solid fa-heart"></i> Add to favorites
+                                        </button>
+                                    {% endif %}
                                 {% else %}
-                                    <button type="submit" name="add_to_wishlist" class="btn btn-wishlist btn-wishlist-remove">
-                                        <i class="fa-solid fa-heart"></i> Add to favorites
-                                    </button>
+                                    <p><a href="{% url 'login' %}">Please log in to collect the product</a></p>
                                 {% endif %}
-                            {% else %}
-                                <p><a href="{% url 'login' %}">Please log in to collect the product</a></p>
-                            {% endif %}
-                        </form>
-                    </div>
-                
+                            </form>
+                        </div>
+                    
 
-                    <div class="d-flex gap-3 mt-3">
-                        <form method="get" action="{% url 'checkout_single_product' product.id %}">
-                            <input type="hidden" name="quantity" id="quantityHidden">
-                            <button type="submit" class="btn btn-warning btn-lg mt-3 btn_buy">
-                                <i class="fa-solid fa-bolt"></i> Buy it now
-                            </button>
-                        </form>
+                        <div class="d-flex gap-3 mt-3">
+                            <form method="get" action="{% url 'checkout_single_product' product.id %}">
+                                <input type="hidden" name="quantity" id="quantityHidden">
+                                <button type="submit" class="btn btn-warning btn-lg mt-3 btn_buy">
+                                    <i class="fa-solid fa-bolt"></i> Buy it now
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
+                    {% else %}
+                    <p class="text-danger text-center" style="font-size: 24px; font-weight: bold;">Sold Out</p>
+                {% endif %}
                 
             </div>
         </div>
@@ -492,6 +496,20 @@
 </div>
 
 <script>
+ // 限制数量不得超过库存
+    const quantityInput = document.getElementById("quantityInput");
+    const maxStock = {{ product.stock_quantity }};
+
+    quantityInput.addEventListener("input", function () {
+        let val = parseInt(quantityInput.value);
+        if (val > maxStock) {
+            alert(`库存不足，最多只能购买 ${maxStock} 件`);
+            quantityInput.value = maxStock;
+        } else if (val < 1 || isNaN(val)) {
+            quantityInput.value = 1;
+        }
+    });
+
     // 同步立即购买数量
     const form = document.querySelector("form[action$='{% url 'checkout_single_product' product.id %}']");
     form.addEventListener("submit", function (e) {
@@ -499,4 +517,6 @@
         document.getElementById("quantityHidden").value = quantity;
     });
 </script>
+
+
 {% endblock %}

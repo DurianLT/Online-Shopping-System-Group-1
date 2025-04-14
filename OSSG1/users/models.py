@@ -88,10 +88,51 @@ class Order(models.Model):
             old_status = Order.objects.get(pk=self.pk).status
             if old_status != self.status:
                 OrderStatusHistory.objects.create(order=self, status=self.status)
+        is_new = self.pk is None  # 判断是否为新订单
+
+        print(f"Saving Order: {self.id}, Status: {self.status}, is_new: {is_new}")
+
+        # 获取旧状态（更新时判断是否变更状态）
+        old_status = None
+        if not is_new and Order.objects.filter(pk=self.pk).exists():
+            old_status = Order.objects.get(pk=self.pk).status
+
+        # 保存订单
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"Order {self.id} - {self.status} - {self.seller.username}"
+        # ✅ 新订单 或 状态为 Pending ➜ 减库存
+        if is_new or self.status == "Paid":
+            for item in self.items.all():
+                # 添加调试信息
+                print(f"Processing OrderItem: {item.product.name}, Quantity: {item.quantity}, Inventory Handled: {item.inventory_handled}")
+                
+                if not item.inventory_handled:
+                    product = item.product
+                    if product.stock_quantity >= item.quantity:
+                        product.stock_quantity -= item.quantity
+                        product.save()
+                        item.inventory_handled = True
+                        item.save()
+                        print(f"Updated Stock: {product.name}, New Stock Quantity: {product.stock_quantity}")
+                    else:
+                        raise ValueError(f"产品 {product.name} 库存不足！")
+
+        # ✅ 如果订单状态从非 Refunded ➜ Refunded，恢复库存
+        if old_status != self.status and self.status == "Refunded":
+            for item in self.items.all():
+                # 添加调试信息
+                print(f"Refunding OrderItem: {item.product.name}, Quantity: {item.quantity}, Inventory Handled: {item.inventory_handled}")
+
+                if item.inventory_handled:
+                    product = item.product
+                    product.stock_quantity += item.quantity
+                    product.save()
+                    item.inventory_handled = False
+                    item.save()
+                    print(f"Restored Stock: {product.name}, New Stock Quantity: {product.stock_quantity}")
+
+        def __str__(self):
+            return f"Order {self.id} - {self.status} - {self.seller.username}"
 
 
 from django.db import models
