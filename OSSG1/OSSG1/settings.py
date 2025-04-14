@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'shoppingtrolley',
     'order',
     'merchant',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

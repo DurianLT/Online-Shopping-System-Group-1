@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 {% load static %}
 
-{% block title %}用户登录{% endblock %}
+{% block title %}User Login{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/users/login.css' %}">
@@ -13,68 +14,100 @@
         padding: 30px;
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin: 0 auto;
+        margin-top: 10vh;
     }
+
     .form-group {
         display: flex;
         flex-direction: column;
         width: 100%;
     }
+
     .form-label {
         font-weight: 600;
         margin-bottom: 5px;
     }
-    .input-container input {
-        width: 100%;
-    }
+
     .form-control {
         height: 48px;
         font-size: 16px;
         border-radius: 8px;
         padding-left: 12px;
         width: 100%;
+        border: 1px solid #ccc;
     }
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
     .btn-login {
         height: 48px;
         font-size: 18px;
         font-weight: 600;
         border-radius: 8px;
         width: 100%;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        margin-top: 20px;
+        transition: background-color 0.3s ease;
     }
-    .text-links a {
-        color: #007bff;
-        font-size: 14px;
-        text-decoration: none;
+
+    .btn-login:hover {
+        background-color: #0056b3;
     }
-    .text-links a:hover {
-        text-decoration: underline;
-    }
+
     .error-message {
         color: red;
         font-size: 14px;
         margin-top: 10px;
     }
+
+    .text-links a {
+        color: #007bff;
+        font-size: 14px;
+        text-decoration: none;
+    }
+
+    .text-links a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 576px) {
+        .login-container {
+            padding: 20px;
+            margin-top: 15vh; /* Slightly increased margin on smaller screens */
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center vh-100">
+<div class="d-flex justify-content-center align-items-start vh-100" style="padding: 0 10px;">
     <div class="login-container">
-        <h2 class="text-center mb-4">用户登录</h2>
+        <h2 class="text-center mb-4">User Login</h2>
         <form method="post">
             {% csrf_token %}
             <div class="mb-3 form-group">
-                <div class="form-label">用户名或邮箱</div>
+                <label for="id_username" class="form-label">Username or Email</label>
                 <div class="input-container">
-                    {{ form.username }}
+                    {{ form.username|add_class:"form-control" }}
                 </div>
             </div>
             <div class="mb-3 form-group">
-                <div class="form-label">密码</div>
+                <label for="id_password" class="form-label">Password</label>
                 <div class="input-container">
-                    {{ form.password }}
+                    {{ form.password|add_class:"form-control" }}
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-login">登录</button>
+            <button type="submit" class="btn-login">Login</button>
         </form>
 
         {% if form.non_field_errors %}
@@ -86,10 +119,10 @@
                 </ul>
             </div>
         {% endif %}
-        
+
         <div class="text-center text-links mt-3">
-            <p class="mb-1">没有账号？ <a href="{% url 'register' %}">去注册</a></p>
-            <p><a href="{% url 'password_reset_by_username' %}">忘记密码？</a></p>
+            <p class="mb-1">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+            <p><a href="{% url 'password_reset_by_username' %}">Forgot password?</a></p>
         </div>
     </div>
 </div>

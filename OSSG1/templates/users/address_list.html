@@ -1,31 +1,77 @@
 {% extends 'base.html' %}
 
-{% block title %}送货地址{% endblock %}
+{% block title %}Shipping Addresses{% endblock %}
 
 {% block content %}
+<style>
+    .address-card {
+        border: 1px solid #ddd;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: box-shadow 0.3s ease;
+    }
+
+    .address-card:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    .default-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        background-color:rgb(19, 74, 175);
+        color: white;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+        opacity: 0.5;
+    }
+
+    .btn-group-sm > .btn {
+        margin-right: 0.25rem;
+    }
+
+    @media (max-width: 576px) {
+        .btn-group-sm {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn-group-sm > .btn {
+            margin-bottom: 0.5rem;
+            width: 100%;
+        }
+    }
+</style>
+
 <div class="container mt-5">
-    <h1>我的送货地址</h1>
-    <a href="{% url 'add_address' %}" class="btn btn-primary mb-3">添加新地址</a>
+    <h1 class="mb-4">My Shipping Addresses</h1>
+    <a href="{% url 'add_address' %}" class="btn btn-success mb-4">Add New Address</a>
+
     {% if addresses %}
-        <ul class="list-group">
-            {% for address in addresses %}
-                <li class="list-group-item d-flex justify-content-between">
-                    <div>
-                        <p>{{ address.address }}</p>
-                        <p>{% if address.is_default %}默认地址{% else %}非默认地址{% endif %}</p>
-                    </div>
-                    <div>
-                        <a href="{% url 'edit_address' address.pk %}" class="btn btn-warning btn-sm">编辑</a>
-                        <form method="post" action="{% url 'delete_address' address.pk %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm">删除</button>
-                        </form>
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
+        {% for address in addresses %}
+            <div class="address-card">
+                <div class="mb-1">
+                    {{ address.address }}
+                    {% if address.is_default %}
+                        <div class="default-badge">Default</div>
+                    {% endif %}
+                </div>
+                
+
+                <div class="btn-group-sm mt-3">
+                    <a href="{% url 'edit_address' address.pk %}" class="btn btn-warning btn-sm" style="width: 80px;">Edit</a>
+                    <form method="post" action="{% url 'delete_address' address.pk %}" onsubmit="return confirm('Are you sure you want to delete this address?');" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" style="width: 80px;">Delete</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
     {% else %}
-        <p>没有添加任何地址。</p>
+        <p>No addresses added yet.</p>
     {% endif %}
 </div>
 {% endblock %}

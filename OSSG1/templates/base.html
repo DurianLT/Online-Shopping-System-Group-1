@@ -274,9 +274,6 @@
         {% block content %}{% endblock %}
     </div>
 
-    <footer class="bg-dark text-light text-center py-3 mt-4">
-        &copy; 2025 OSSG1 Mall
-    </footer>
 
     {% comment %} 模式切换逻辑 {% endcomment %}
     <script>  
@@ -315,22 +312,24 @@
         document.addEventListener('DOMContentLoaded', function () {
             const dropdown = document.querySelector('.dropdown-hover');
             const menu = document.getElementById('userDropdownMenu');
-    
-            dropdown.addEventListener('mouseenter', function () {
-                // 先显示菜单以计算宽度
-                menu.style.display = 'block';
-                const rect = menu.getBoundingClientRect();
-    
-                // 判断是否会超出屏幕右边界（例如距离右侧少于20px）
-                const rightOverflow = rect.right > window.innerWidth - 20;
-    
-                if (rightOverflow) {
-                    menu.classList.add('dropdown-menu-left-align');
-                }
-    
-                // 最后隐藏，等 hover 时由 CSS 控制显示
-                menu.style.display = '';
-            });
+        
+            if (dropdown && menu) {
+                dropdown.addEventListener('mouseenter', function () {
+                    // 先显示菜单以计算宽度
+                    menu.style.display = 'block';
+                    const rect = menu.getBoundingClientRect();
+        
+                    // 判断是否会超出屏幕右边界（例如距离右侧少于20px）
+                    const rightOverflow = rect.right > window.innerWidth - 20;
+        
+                    if (rightOverflow) {
+                        menu.classList.add('dropdown-menu-left-align');
+                    }
+        
+                    // 最后隐藏，等 hover 时由 CSS 控制显示
+                    menu.style.display = '';
+                });
+            }
         });
     </script>
     
