@@ -1,25 +1,137 @@
 {% extends 'base.html' %}
-
-{% block title %}用户中心{% endblock %}
+{% block title %}User Center{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">用户中心</h2>
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h4 class="card-title">{{ user.username }}</h4>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>注册时间:</strong> {{ user.created_at }}</p>
-            <p><strong>最后更新时间:</strong> {{ user.updated_at }}</p>
-            
-            <!-- 这里可以添加更多的用户信息，如地址、订单等 -->
-            <div class="mt-4">
-                <a href="{% url 'logout' %}" class="btn btn-danger">退出登录</a>
-                <a href="{% url 'edit_profile' %}" class="btn btn-primary">编辑个人信息</a>
-                <a class="btn btn-primary" href="{% url 'address_list' %}">编辑送货地址</a>
+<style>
+    @media (max-width: 768px) {
+        .flex-col-md {
+            flex-direction: column !important;
+        }
+        .text-right-md {
+            text-align: left !important;
+            margin-top: 1rem;
+        }
+        .order-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="list-group shadow-sm" id="userMenu">
+                <a href="#" class="list-group-item list-group-item-action active" data-section="overview">Overview</a>
+                <a href="{% url 'cart_list' %}" class="list-group-item list-group-item-action">Cart</a>
+                <a href="{% url 'order_list' %}" class="list-group-item list-group-item-action">Orders</a>
+                <a href="{% url 'wishlist' %}" class="list-group-item list-group-item-action">Wishlist</a>
+                <a href="#" class="list-group-item list-group-item-action" data-section="account">Account Settings</a>
             </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="col-md-9">
+            <!-- Overview Section -->
+            <div id="overview-section" class="content-section p-4">
+                <div class="rounded-3xl shadow-md bg-gradient-to-r from-orange-50 to-white p-6 flex justify-between flex-col-md">
+                    <!-- User Info -->
+                    <div class="flex items-center space-x-6">
+                        <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-4xl">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800">{{ user.username }}</h2>
+                            <p class="text-sm text-gray-500">Email: {{ user.email }}</p>
+                            <p class="text-sm text-gray-500">
+                                Default Address:
+                                {% if default_address %}
+                                    {{ default_address.address }}
+                                {% else %}
+                                    No default address
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4">My Orders</h3>
+                    <div class="grid grid-cols-5 order-grid gap-4 text-center">
+                        <a href="{% url 'order_list' %}" class="bg-white rounded-xl shadow p-4 hover:bg-orange-50">
+                            <p class="text-3xl font-bold text-gray-800">{{ order_status_counts.Paid|default:0 }}</p>
+                            <p class="text-sm text-gray-600 mt-1">Paid</p>
+                        </a>
+                        <a href="{% url 'order_list' %}" class="bg-white rounded-xl shadow p-4 hover:bg-orange-50">
+                            <p class="text-3xl font-bold text-gray-800">{{ order_status_counts.Shipped|default:0 }}</p>
+                            <p class="text-sm text-gray-600 mt-1">Shipped</p>
+                        </a>
+                        <a href="{% url 'order_list' %}" class="bg-white rounded-xl shadow p-4 hover:bg-orange-50">
+                            <p class="text-3xl font-bold text-gray-800">{{ order_status_counts.Completed|default:0 }}</p>
+                            <p class="text-sm text-gray-600 mt-1">Completed</p>
+                        </a>
+                        <a href="{% url 'order_list' %}" class="bg-white rounded-xl shadow p-4 hover:bg-orange-50">
+                            <p class="text-3xl font-bold text-gray-800">{{ order_status_counts.Refunding|default:0 }}</p>
+                            <p class="text-sm text-gray-600 mt-1">Refunding</p>
+                        </a>
+                        <a href="{% url 'order_list' %}" class="bg-white rounded-xl shadow p-4 hover:bg-orange-50">
+                            <p class="text-3xl font-bold text-gray-800">{{ order_status_counts.Refunded|default:0 }}</p>
+                            <p class="text-sm text-gray-600 mt-1">Refunded</p>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Logout -->
+                <div class="mt-8 text-right text-right-md">
+                    <a href="{% url 'logout' %}" class="inline-block bg-red-100 text-red-600 px-4 py-2 rounded-xl hover:bg-red-200">Logout</a>
+                </div>
+            </div>
+
+            <!-- Account Settings Section -->
+            <div id="account-section" class="content-section d-none">
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Account Settings</h2>
+
+                    <div class="space-y-3 text-sm text-gray-700">
+                        <p><span class="font-medium">Email:</span> {{ user.email }}</p>
+                        <p><span class="font-medium">Registered At:</span> {{ user.created_at }}</p>
+                        <p><span class="font-medium">Last Updated:</span> {{ user.updated_at }}</p>
+                    </div>
+
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a href="{% url 'edit_profile' %}" class="inline-block bg-blue-100 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-200">
+                            Edit Profile
+                        </a>
+                        <a href="{% url 'address_list' %}" class="inline-block bg-green-100 text-green-600 px-4 py-2 rounded-lg hover:bg-green-200">
+                            Manage Addresses
+                        </a>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+<!-- JS to handle section switching -->
+<script>
+    const menuItems = document.querySelectorAll('#userMenu a[data-section]');
+    const sections = document.querySelectorAll('.content-section');
+
+    menuItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            menuItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            sections.forEach(sec => sec.classList.add('d-none'));
+            const sectionId = this.getAttribute('data-section') + '-section';
+            document.getElementById(sectionId).classList.remove('d-none');
+        });
+    });
+</script>
 {% endblock %}

@@ -66,16 +66,45 @@ class RegisterView(CreateView):
         messages.error(self.request, "注册失败，请检查输入信息并重试。")
         return self.render_to_response(self.get_context_data(form=form))
 # 用户中心
-class UserProfileView(DetailView):
-    model = CustomUser
-    template_name = 'users/user_profile.html'  # 指定用户详情页面模板
-    context_object_name = 'user'  # 上下文中用户对象的名称
-
-    # 获取当前登录的用户
-    def get_object(self):
-        return get_object_or_404(CustomUser, id=self.request.user.id)
+from django.views.generic import DetailView
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+from users.models import Order
 
 User = get_user_model()
+
+class UserProfileView(DetailView):
+    model = User
+    template_name = 'users/user_profile.html'
+    context_object_name = 'user'
+
+    def get_object(self):
+        return get_object_or_404(User, id=self.request.user.id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        user = self.request.user
+
+        # 统计当前用户各订单状态数量
+        order_status_counts = {
+            'Pending': Order.objects.filter(user=user, status='Pending').count(),
+            'Paid': Order.objects.filter(user=user, status='Paid').count(),
+            'Shipped': Order.objects.filter(user=user, status='Shipped').count(),
+            'Completed': Order.objects.filter(user=user, status='Completed').count(),
+            'Cancelled': Order.objects.filter(user=user, status='Cancelled').count(),
+            'Refunding': Order.objects.filter(user=user, status='Refunding').count(),
+            'Refunded': Order.objects.filter(user=user, status='Refunded').count(),
+        }
+
+        # 获取默认地址
+        default_address = user.addresses.filter(is_default=True).first()
+
+        context['order_status_counts'] = order_status_counts
+        context['default_address'] = default_address
+
+        return context
+
 
 class PasswordResetByUsernameView(View):
     def get(self, request):

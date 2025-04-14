@@ -200,7 +200,7 @@
                 <a href="{% url 'cart_list' %}" class="d-block text-decoration-none text-white mb-2"><i class="fas fa-shopping-cart"></i> Carts</a>
                 <a href="{% url 'wishlist' %}" class="d-block text-decoration-none text-white mb-2"><i class="fas fa-heart"></i> Favorites</a>
                 <a href="{% url 'order_list' %}" class="d-block text-decoration-none text-white mb-2"><i class="fas fa-box"></i> Orders</a>
-                <a href="#" class="d-block text-decoration-none text-white mb-2"><i class="fas fa-user"></i> User Center</a>
+                <a href="{% url 'user_profile' %}" class="d-block text-decoration-none text-white mb-2"><i class="fas fa-user"></i> User Center</a>
                 <a href="{% url 'merchant:dashboard' %}" class="d-block text-decoration-none text-white"><i class="fas fa-dollar-sign"></i> Seller Center</a>
             </div>
         </div>
@@ -209,11 +209,15 @@
             <div class="d-flex justify-content-end"  id="userDropdownMenu">
                 {% if user.is_authenticated %}
                     <div class="nav-item dropdown dropdown-hover me-3">
-                        <a href="#" class="nav-link dropdown-toggle" role="button">
+                        <a href="{% url 'user_profile' %}" class="nav-link dropdown-toggle" role="button">
                             <i class="fas fa-user"></i> {{ user.username }}
                         </a>
                         <div id="userDropdownMenu" class="dropdown-menu-custom bg-white text-dark">
-                    <div class="fw-bold">{{ user.username }}</div>
+                    <div class="fw-bold">
+                        <a href="{% url 'user_profile' %}">
+                            {{ user.username }}
+                        </a>
+                    </div>
                     <hr>
                     <ul class="list-unstyled">
                         <li><a href="{% url 'cart_list' %}"><i class="fas fa-shopping-cart"></i> Carts</a></li>
