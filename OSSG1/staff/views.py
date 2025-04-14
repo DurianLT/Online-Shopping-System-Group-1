@@ -4,13 +4,14 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 
-from products.models import Product
+from products.models import Product, CategoryLevel1, RecommendedTag
+from staff.form import AddTagForm
 from users.models import Review
 
 
 @method_decorator(user_passes_test(lambda u: u.is_staff), name='dispatch')
 class AdminDashboardView(TemplateView):
-    template_name = "adminpanel/home.html"
+    template_name = "staff/home.html"
 
     def get(self, request, *args, **kwargs):
         product_id = request.GET.get("product_id")
@@ -43,3 +44,26 @@ class SoftDeleteProductView(View):
         product.soft_delete()
         messages.success(request, f"已软删除商品：{product.name}")
         return redirect("adminpanel:dashboard")
+
+
+# staff/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+
+
+
+def manage_tags(request):
+    categories = CategoryLevel1.objects.all()
+    return render(request, 'staff/manage_tags.html', {'categories': categories})
+
+def add_tag(request, category_id):
+    category = get_object_or_404(CategoryLevel1, id=category_id)
+    if request.method == 'POST':
+        tag_name = request.POST.get('tag_name')
+        if tag_name:
+            RecommendedTag.objects.create(category=category, tag_name=tag_name)
+    return redirect('adminpanel:manage_tags')
+
+def delete_tag(request, tag_id):
+    tag = get_object_or_404(RecommendedTag, id=tag_id)
+    tag.delete()
+    return redirect('adminpanel:manage_tags')

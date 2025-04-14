@@ -140,27 +140,18 @@ class GetSubcategoriesView(View):
 
 
 
-# views.py
 from django.http import JsonResponse
-
-RECOMMENDED_TAGS = {
-    "休闲": ["品牌", "材质", "型号", "颜色", "适用年龄", "适用性别"],
-    "体育": ["品牌", "型号", "运动种类", "颜色", "适用年龄", "适用性别"],
-    "医药品": ["品牌", "型号", "适用年龄", "适用性别"],
-    "文具": ["品牌", "型号", "颜色"],
-    "玩具": ["品牌", "适用年龄", "适用性别", "材质", "型号", "颜色"],
-    "生活用品": ["品牌", "材质", "型号", "颜色", "适用年龄", "适用性别", "适用人数"],
-    "电子产品": ["品牌", "型号", "内存", "CPU", "储存", "颜色"],
-    "食品": ["品牌", "味道", "地区"]
-}
-
+from django.views import View
 
 class GetRecommendedTagsView(View):
     def get(self, request, *args, **kwargs):
         category_name = request.GET.get("category_name")
-        tags = RECOMMENDED_TAGS.get(category_name, [])
+        try:
+            category = CategoryLevel1.objects.get(name=category_name)
+            tags = list(category.recommended_tags.values_list('tag_name', flat=True))
+        except CategoryLevel1.DoesNotExist:
+            tags = []
         return JsonResponse(tags, safe=False)
-
 
 
 

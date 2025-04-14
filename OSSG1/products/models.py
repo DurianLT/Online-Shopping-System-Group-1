@@ -29,6 +29,13 @@ class CategoryLevel3(models.Model):
         return f"{self.parent.parent.name} > {self.parent.name} > {self.name}"
 
 
+class RecommendedTag(models.Model):
+    category = models.ForeignKey(CategoryLevel1, on_delete=models.CASCADE, related_name='recommended_tags')
+    tag_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.category.name} - {self.tag_name}"
+
 
 from django.db import models
 
