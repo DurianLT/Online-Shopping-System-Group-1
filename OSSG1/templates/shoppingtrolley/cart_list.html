@@ -1,123 +1,194 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}购物车{% endblock %}
+{% block title %}Shopping Cart{% endblock %}
 
 {% block extra_head %}
     <style>
         .cart-item {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            padding: 20px 0;
+            transition: all 0.3s ease;
+        }
+        .cart-item:hover {
+            background-color: #f9f9f9;
         }
         .cart-item img {
             width: 100px;
             height: 100px;
             object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .cart-item-details {
+        .product-info {
+            padding-left: 20px;
+        }
+        .product-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .product-name:hover {
+            color: #0d6efd;
+        }
+        .added-time {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .discount-price {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .quantity-control {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 10px;
         }
-        .cart-item-details .product-info {
-            flex: 1;
-            padding-left: 10px;
+        .quantity-display {
+            min-width: 30px;
+            text-align: center;
         }
-        .cart-item-details .product-price {
-            font-weight: bold;
+        .total-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
         }
-        .cart-item-actions {
-            display: flex;
-            gap: 10px; /* Add some space between the buttons */
+        .empty-cart {
+            text-align: center;
+            padding: 50px 0;
         }
-        .cart-item-actions button {
-            width: 40px; /* Fixed width for buttons */
-            height: 40px; /* Fixed height for buttons */
-            font-size: 20px; /* Adjust font size */
-        }
-        .total-price {
-            font-size: 20px;
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        .checkout-btn {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-        .checkout-btn:hover {
-            background-color: #0056b3;
-        }
-        .btn-outline-warning {
-            color: #000000
+        .empty-cart-icon {
+            font-size: 5rem;
+            color: #dee2e6;
+            margin-bottom: 20px;
         }
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h1>购物车</h1>
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="fw-bold">
+                    <i class="bi bi-cart3 me-2"></i>My Shopping Cart
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'product-list' %}">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
 
         {% if cart_items %}
-            <div class="cart-items-list">
-                {% for item in cart_items %}
-                    <div class="cart-item">
-                        <div class="cart-item-details d-flex align-items-center">
-                            <!-- 商品图片 -->
-                            <a href="{% url 'product-detail' item.product.id %}">
-                                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
-                            </a>
-                            <div class="product-info">
-                                <h5><a href="{% url 'product-detail' item.product.id %}" class="text-decoration-none text-dark">{{ item.product.name }}</a></h5>
-                                <p>添加时间: {{ item.created_at|date:"Y-m-d H:i" }}</p>
-                                <p class="product-price">
-                                    {% if item.product.pricing.discount %}
-                                        ¥{{ item.product.pricing.discount }} <del class="text-muted">¥{{ item.product.pricing.price }}</del>
-                                    {% else %}
-                                        ¥{{ item.product.pricing.price }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                            <!-- 商品操作按钮 -->
-                            <div class="cart-item-actions">
-                                <!-- 数量-1按钮 -->
-                                <form method="post" action="{% url 'modify_cart' item.product.id 'subtract' %}" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-warning btn-sm">-</button>
-                                </form>
-                                <a>数量: {{ item.quantity }}</a>
-                                <!-- 数量+1按钮 -->
-                                <form method="post" action="{% url 'modify_cart' item.product.id 'add' %}" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-primary btn-sm">+</button>
-                                </form>
-                                <!-- 移除按钮 -->
-                                <form method="post" action="{% url 'modify_cart' item.product.id 'remove' %}" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-sm w-100">移除</button>
-                                </form>
-
-                                
-
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="cart-items-list">
+                                {% for item in cart_items %}
+                                    <div class="cart-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-2">
+                                                <a href="{% url 'product-detail' item.product.id %}">
+                                                    <img src="{{ item.product.images.first.image.url }}" class="img-fluid" alt="{{ item.product.name }}">
+                                                </a>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="product-info">
+                                                    <h5 class="product-name mb-1">
+                                                        <a href="{% url 'product-detail' item.product.id %}" class="text-decoration-none">{{ item.product.name }}</a>
+                                                    </h5>
+                                                    <p class="added-time mb-0">
+                                                        <i class="bi bi-clock me-1"></i>Added on {{ item.created_at|date:"Y-m-d H:i" }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="product-price">
+                                                    {% if item.product.pricing.discount %}
+                                                        <span class="discount-price">¥{{ item.product.pricing.discount }}</span>
+                                                        <span class="original-price ms-2">¥{{ item.product.pricing.price }}</span>
+                                                    {% else %}
+                                                        <span>¥{{ item.product.pricing.price }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="d-flex align-items-center justify-content-end">
+                                                    <div class="quantity-control me-3">
+                                                        <form method="post" action="{% url 'modify_cart' item.product.id 'subtract' %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                                                <i class="bi bi-dash-lg"></i>
+                                                            </button>
+                                                        </form>
+                                                        <span class="quantity-display">{{ item.quantity }}</span>
+                                                        <form method="post" action="{% url 'modify_cart' item.product.id 'add' %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                                                <i class="bi bi-plus-lg"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                    <form method="post" action="{% url 'modify_cart' item.product.id 'remove' %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
-                {% endfor %}
+                </div>
+                
+                <div class="col-lg-4 mt-4 mt-lg-0">
+                    <div class="card shadow-sm">
+                        <div class="card-body total-section">
+                            <h5 class="card-title mb-4">Order Summary</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Items:</span>
+                                <span>{{ total_quantity }} items</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Total Amount:</span>
+                                <span class="fw-bold fs-5 text-danger">¥{{ total_price }}</span>
+                            </div>
+                            <a href="{% url 'confirm_order' %}" class="btn btn-primary w-100 py-2">
+                                <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+                            </a>
+                            <a href="{% url 'product-list' %}" class="btn btn-outline-secondary w-100 mt-2 py-2">
+                                <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <!-- 计算总价格 -->
-            <div class="total-price">
-                <p>总价: ¥{{ total_price }}</p>
-            </div>
-
-            <a href="{% url 'confirm_order' %}" class="btn btn-primary checkout-btn">结账</a>
-
-
-
         {% else %}
-            <p>购物车为空</p>
+            <div class="card shadow-sm">
+                <div class="card-body empty-cart">
+                    <div class="empty-cart-icon">
+                        <i class="bi bi-cart-x"></i>
+                    </div>
+                    <h3 class="mb-3">Your Shopping Cart is Empty</h3>
+                    <p class="text-muted mb-4">Start adding some amazing products!</p>
+                    <a href="{% url 'product-list' %}" class="btn btn-primary px-4">
+                        <i class="bi bi-bag me-2"></i>Shop Now
+                    </a>
+                </div>
+            </div>
         {% endif %}
     </div>
 {% endblock %}
