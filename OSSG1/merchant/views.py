@@ -23,6 +23,12 @@ class MerchantRequiredMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
+from django.views.generic import ListView
+from django.utils.timezone import now, timedelta
+from django.db.models import Sum, Count, Avg
+from users.models import Review, OrderItem
+from django.db.models import F
+
 class MerchantDashboardView(MerchantRequiredMixin, ListView):
     """ 商家管理首页 """
     template_name = "merchant/dashboard.html"
@@ -33,11 +39,52 @@ class MerchantDashboardView(MerchantRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        orders = Order.objects.filter(seller=self.request.user)
+        user = self.request.user
+
+        # 所有订单
+        orders = Order.objects.filter(seller=user)
         context["orders"] = orders
-        context["total_sales"] = sum(order.total_amount for order in orders if order.status == "Shipped")
+
+        # 累计销售额（仅统计已发货）
+        context["total_sales"] = orders.filter(status="Completed").aggregate(
+            total=Sum("total_amount")
+        )["total"] or 0
+
+        # 待处理订单数（已付款未发货）
         context["pending_orders"] = orders.filter(status="Paid").count()
+
+        # 销售趋势（近30天）
+        today = now().date()
+        last_30_days = [today - timedelta(days=i) for i in range(29, -1, -1)]
+        sales_labels = [d.strftime("%m-%d") for d in last_30_days]
+        sales_data = []
+
+        for date in last_30_days:
+            daily_total = orders.filter(
+                updated_at__date=date, status="Completed"
+            ).aggregate(sum=Sum("total_amount"))["sum"] or 0
+            sales_data.append(float(daily_total))
+
+        context["sales_labels"] = sales_labels
+        context["sales_data"] = sales_data
+
+
+        # 热门商品（销量最多前5）
+        top_products = (
+            Product.objects.filter(user=user)
+            .annotate(
+                sales_count=Sum("order_items__quantity"),
+                total_sales=Sum(F("order_items__quantity") * F("order_items__price"))
+            )
+            .order_by("-sales_count")[:5]
+        )
+        context["top_products"] = top_products
+
+        # 最近订单（最近5条）
+        context["recent_orders"] = orders.order_by("-created_at")[:5]
+
         return context
+
 
 
 class ProductListView(MerchantRequiredMixin, ListView):
@@ -155,27 +202,61 @@ class GetRecommendedTagsView(View):
 
 
 
-
+from django.views.generic import ListView
+from django.db.models import Count
+from django.utils.functional import cached_property
 class OrderListView(MerchantRequiredMixin, ListView):
-    """ 商家查看订单列表 """
+    """商家查看订单列表视图"""
     template_name = "merchant/order_list.html"
     context_object_name = "orders"
+    paginate_by = 10  # 默认分页
+    ordering = "-created_at"
+
+    STATUS_CHOICES = {
+        'Paid': 'Paid',
+        'Shipped': 'Shipped',
+        'Completed': 'Completed',
+        'Cancelled': 'Cancelled',
+    }
+
+    @cached_property
+    def status_filter(self):
+        """获取状态筛选参数"""
+        return self.request.GET.get("status", "").strip()
 
     def get_queryset(self):
-        """ 获取当前商家所有订单，并按购买日期降序排列 """
-        status_filter = self.request.GET.get("status", "").strip()
-        orders = Order.objects.filter(seller=self.request.user).order_by("-created_at")
+        """查询当前商家的订单列表"""
+        queryset = Order.objects.filter(seller=self.request.user)
 
-        if status_filter:
-            orders = orders.filter(status=status_filter)
+        # 状态过滤
+        if self.status_filter in self.STATUS_CHOICES.values():
+            queryset = queryset.filter(status=self.status_filter)
 
-        return orders
+        # 优化查询，避免 N+1
+        queryset = queryset.select_related("user").prefetch_related("items")
+
+        return queryset.order_by(self.ordering)
 
     def get_context_data(self, **kwargs):
-        """ 传递筛选状态到模板 """
+        """添加额外上下文数据"""
         context = super().get_context_data(**kwargs)
-        context["status_filter"] = self.request.GET.get("status", "")
+        context["status_filter"] = self.status_filter
+
+        # 统计每种状态的订单数量
+        status_counts = Order.objects.filter(seller=self.request.user).values(
+            "status"
+        ).annotate(count=Count("id"))
+        context["status_counts"] = {item["status"]: item["count"] for item in status_counts}
+
         return context
+
+    def get_paginate_by(self, queryset):
+        """允许通过 GET 参数动态控制分页数量"""
+        try:
+            return int(self.request.GET.get("paginate_by", self.paginate_by))
+        except ValueError:
+            return self.paginate_by
+
 
 
 class OrderDetailView(MerchantRequiredMixin, DetailView):
