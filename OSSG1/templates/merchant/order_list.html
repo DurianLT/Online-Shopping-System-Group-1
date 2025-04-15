@@ -1,73 +1,212 @@
 {% extends 'base.html' %}
 
-{% block title %}订单管理{% endblock %}
+{% block title %}Order Management{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="fw-bold">订单管理</h2>
-
-    <!-- 订单状态筛选 -->
-    <form method="get" class="mb-3">
-        <label for="status">订单状态:</label>
-        <select name="status" id="status" class="form-select w-auto d-inline">
-            <option value="">全部</option>
-            <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>待支付</option>
-            <option value="Paid" {% if status_filter == "Paid" %}selected{% endif %}>已支付</option>
-            <option value="Shipped" {% if status_filter == "Shipped" %}selected{% endif %}>已发货</option>
-            <option value="Completed" {% if status_filter == "Completed" %}selected{% endif %}>已完成</option>
-            <option value="Cancelled" {% if status_filter == "Cancelled" %}selected{% endif %}>已取消</option>
-        </select>
-        <button type="submit" class="btn btn-primary">筛选</button>
-    </form>
-
-    <!-- 订单列表 -->
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>订单编号</th>
-                <th>买家</th>
-                <th>总金额</th>
-                <th>状态</th>
-                <th>下单时间</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-            <tr>
-                <td>#{{ order.id }}</td>
-                <td>
-                    {% if order.user.first_name or order.user.last_name %}
-                        {{ order.user.first_name }} {{ order.user.last_name }}
-                    {% else %}
-                        {{ order.user.username }}
+<div class="container py-4">
+    <!-- Title and Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="fw-bold mb-0">Order Management</h2>
+                <span class="badge bg-primary">{{ orders|length }} orders</span>
+            </div>
+            
+            <!-- Order Status Filter -->
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Order Status:</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="Paid" {% if status_filter == "Paid" %}selected{% endif %}>Paid</option>
+                        <option value="Shipped" {% if status_filter == "Shipped" %}selected{% endif %}>Shipped</option>
+                        <option value="Completed" {% if status_filter == "Completed" %}selected{% endif %}>Completed</option>
+                        <option value="Cancelled" {% if status_filter == "Cancelled" %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel-fill me-1"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Order List -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Order ID</th>
+                            <th>Customer</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Order Date</th>
+                            <th class="pe-4 text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td class="ps-4 fw-semibold">#{{ order.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-2">
+                                        <div class="avatar avatar-sm" style="background-color: {{ order.user.username|length|add:100|make_list|join:''|slice:':6'|add:'33' }}">
+                                            <span class="avatar-text">
+                                                {% with username=order.user.username %}
+                                                    {% if username|length >= 2 %}
+                                                        {{ username|slice:':2'|upper }}
+                                                    {% else %}
+                                                        {{ username|first|upper }}
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        {% if order.user.first_name or order.user.last_name %}
+                                            {{ order.user.first_name }} {{ order.user.last_name }}
+                                        {% else %}
+                                            {{ order.user.username }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="fw-bold text-danger">¥{{ order.total_amount }}</td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                {% if order.status == 'Pending' %}bg-warning text-dark
+                                {% elif order.status == 'Paid' %}bg-success
+                                {% elif order.status == 'Shipped' %}bg-primary
+                                {% elif order.status == 'Completed' %}bg-secondary
+                                {% elif order.status == 'Cancelled' %}bg-danger
+                                {% elif order.status == 'Refunding' %}bg-info
+                                {% elif order.status == 'Refunded' %}bg-dark
+                                {% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span data-bs-toggle="tooltip" title="{{ order.created_at|date:'Y-m-d H:i:s' }}">
+                                    {{ order.created_at|date:"Y-m-d H:i" }}
+                                </span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <a href="{% url 'merchant:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye-fill me-1"></i>Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-cart-x fs-1"></i>
+                                <p class="mt-2">No order records found</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="card-footer bg-transparent">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
                     {% endif %}
-                </td>
-                <td>¥{{ order.total_amount }}</td>
-                <td>
-                    <span class="badge 
-                        {% if order.status == 'Pending' %}bg-warning
-                        {% elif order.status == 'Paid' %}bg-success
-                        {% elif order.status == 'Shipped' %}bg-primary
-                        {% elif order.status == 'Completed' %}bg-secondary
-                        {% elif order.status == 'Cancelled' %}bg-danger
-                        {% elif order.status == 'Refunding' %}bg-info
-                        {% elif order.status == 'Refunded' %}bg-dark
-                        {% endif %}">
-                        {{ order.get_status_display }}
-                    </span>
-                </td>
-                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
-                <td>
-                    <a href="{% url 'merchant:order_detail' order.id %}" class="btn btn-sm btn-info">查看详情</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-center text-muted">暂无订单</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
 </div>
+
+<style>
+    .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-weight: 600;
+        color: white;
+    }
+    .avatar-sm {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+    .avatar-text {
+        line-height: 1;
+    }
+    .table th {
+        border-top: none;
+        border-bottom: 2px solid #dee2e6;
+    }
+</style>
+
+<script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // Dynamic avatar background color generation
+        document.querySelectorAll('.avatar').forEach(function(avatar) {
+            if(!avatar.style.backgroundColor) {
+                const name = avatar.querySelector('.avatar-text').textContent.trim();
+                const hash = Array.from(name).reduce((hash, char) => {
+                    return char.charCodeAt(0) + ((hash << 5) - hash);
+                }, 0);
+                const color = `hsl(${hash % 360}, 70%, 60%)`;
+                avatar.style.backgroundColor = color;
+            }
+        });
+    });
+</script>
 {% endblock %}
