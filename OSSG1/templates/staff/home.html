@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}管理员后台{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">🛠️ 管理员后台</h2>
+
+    <div class="mb-3 d-flex gap-2">
+        <a href="#" class="btn btn-outline-primary">管理商品</a>
+        <a href="{% url 'adminpanel:manage_tags' %}" class="btn btn-outline-secondary">管理标签</a>
+    </div>
+
+    <hr>
+    <h4>📝 评论管理 {% if product_filter %}(商品ID: {{ product_filter }}){% endif %}</h4>
+
+    <form method="get" class="mb-3 d-flex gap-2">
+        <select name="product_id" class="form-select w-auto">
+            <option value="">-- 按商品筛选 --</option>
+            {% for product in products %}
+                <option value="{{ product.id }}" {% if product.id|stringformat:"s" == product_filter %}selected{% endif %}>
+                    {{ product.name }} (ID: {{ product.id }})
+                </option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-sm btn-primary" type="submit">筛选</button>
+    </form>
+
+    {% for review in reviews %}
+        <div class="card mb-3 p-3">
+            <div>
+                <strong>{{ review.user.username }}</strong> 于
+                <strong>订单项 #{{ review.order_item.id }}</strong> 评论：
+                <span class="badge bg-info">{{ review.rating }}⭐</span>
+                <span class="text-muted float-end">{{ review.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+            <p class="mt-2">{{ review.comment }}</p>
+            <form action="{% url 'adminpanel:delete_review' review.id %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-danger">删除评论</button>
+            </form>
+        </div>
+    {% empty %}
+        <p class="text-muted">暂无评论。</p>
+    {% endfor %}
+
+    <hr>
+    <h4>🧺 商品管理（快速软删除）</h4>
+    <div class="row">
+        {% for product in products %}
+            <div class="col-md-4 mb-3">
+                <div class="card p-3">
+                    <strong>{{ product.name }}</strong>
+                    <p class="text-muted small mb-1">库存：{{ product.stock_quantity }}</p>
+                    <form action="{% url 'adminpanel:soft_delete_product' product.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-warning">软删除</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

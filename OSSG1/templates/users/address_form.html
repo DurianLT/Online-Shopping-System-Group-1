@@ -1,51 +1,51 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 {% load static %}
 
-{% block title %}{{ view.name }}送货地址{% endblock %}
+{% block title %}{{ view.name }} Shipping Address{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/address/address_form.css' %}">
     <style>
-        .address-form-container {
-            width: 100%;
-            max-width: 500px;
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .form-group {
+        .address-form-wrapper {
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+
+        .address-form-container {
+            max-width: 500px;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
             width: 100%;
         }
+
         .form-label {
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
         }
+
         .form-control {
             height: 48px;
             font-size: 16px;
-            border-radius: 8px;
-            padding-left: 12px;
-            width: 100%;
-        }
-        .btn-save {
-            height: 48px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: 8px;
-            width: 100%;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            margin-top: 20px;
-        }
-        .btn-save:hover {
-            background-color: #0056b3;
+            border-radius: 0.5rem;
+            padding-left: 1rem;
+            border: 1px solid #ccc;
         }
 
-        /* 放大复选框 */
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: none;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
         .form-check-input {
             width: 20px;
             height: 20px;
@@ -53,8 +53,25 @@
         }
 
         .form-check-label {
-            display: inline-block;
             font-size: 16px;
+            margin: 0;
+        }
+
+        .btn-save {
+            width: 100%;
+            height: 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            margin-top: 1.5rem;
+            transition: background 0.3s ease;
+        }
+
+        .btn-save:hover {
+            background: linear-gradient(135deg, #0056b3, #003f8a);
         }
 
         .text-center a {
@@ -62,32 +79,49 @@
             font-size: 14px;
             text-decoration: none;
         }
+
         .text-center a:hover {
             text-decoration: underline;
+        }
+
+        @media (max-width: 576px) {
+            .address-form-container {
+                padding: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .address-form-wrapper {
+                padding-top: 30px;
+                padding-bottom: 30px;
+            }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center vh-100">
+<div class="address-form-wrapper">
     <div class="address-form-container">
-        <h2 class="text-center mb-4">{{ view.name }}送货地址</h2>
+        <h2 class="text-center mb-4">{{ view.name }} Shipping Address</h2>
         <form method="post">
             {% csrf_token %}
-            <div class="mb-3 form-group">
-                <label for="address" class="form-label">地址</label>
-                {{ form.address }}
+            <div class="mb-3">
+                <label for="id_address" class="form-label">Address</label>
+                {{ form.address|add_class:"form-control" }}
             </div>
-            <div class="mb-3 form-group d-flex align-items-center">
-                <!-- 放大复选框并放在同一行 -->
-                <label for="is_default" class="form-label mb-0">设置为默认地址</label>
-                {{ form.is_default }}
+
+            <div class="form-check">
+                {{ form.is_default|add_class:"form-check-input" }}
+                <label for="id_is_default" class="form-check-label">Set as default</label>
             </div>
-            <button type="submit" class="btn-save">保存</button>
+
+            <button type="submit" class="btn-save">Save</button>
         </form>
 
         <div class="text-center mt-3">
-            <a href="{% url 'address_list' %}">返回地址列表</a>
+            <a href="{% url 'address_list' %}">Back to address list</a>
         </div>
     </div>
 </div>

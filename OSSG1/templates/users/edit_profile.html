@@ -1,25 +1,103 @@
-<!-- edit_profile.html -->
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 
-{% block title %}编辑个人信息{% endblock %}
+{% block title %}Edit Profile{% endblock %}
 
 {% block content %}
+<style>
+    .profile-card {
+        max-width: 600px;
+        margin: auto;
+        background: #fff;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid #ccc;
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #198754;
+        box-shadow: none;
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc3545;
+    }
+
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875rem;
+    }
+
+    .btn-save {
+        width: 100%;
+        padding: 0.75rem;
+        font-weight: bold;
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #198754, #28a745);
+        border: none;
+        color: white;
+        transition: background 0.3s ease;
+    }
+
+    .btn-save:hover {
+        background: linear-gradient(135deg, #157347, #1e7e34);
+    }
+
+    @media (max-width: 576px) {
+        .profile-card {
+            padding: 1.5rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
 <div class="container mt-5">
-    <h2>编辑个人信息</h2>
+    <div class="profile-card">
+        <h2 class="mb-4 text-center">Edit Your Profile</h2>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="id_username" class="form-label">用户名</label>
-            {{ form.username }}
-        </div>
-        
-        <div class="mb-3">
-            <label for="id_email" class="form-label">邮箱</label>
-            {{ form.email }}
-        </div>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                {% if form.username.errors %}
+                    {{ form.username|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.username.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.username|add_class:"form-control" }}
+                {% endif %}
+            </div>
 
-        <button type="submit" class="btn btn-success">保存更改</button>
-    </form>
+            <div class="mb-3">
+                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                {% if form.email.errors %}
+                    {{ form.email|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.email.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.email|add_class:"form-control" }}
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-save">Save Changes</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

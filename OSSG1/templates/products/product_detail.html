@@ -1,126 +1,320 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ product.name }} - 商品详情{% endblock %}
+{% block title %}{{ product.name }} - Product details{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/products/product_detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <style>
-    .register-container {
-        width: 100%;
-        max-width: 400px;
-        background: #fff;
-        padding: 30px;
+    body {
+        font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+        color: #333;
+    }
+
+    .product-info {
+        background-color: #fff;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
+
+    .store-info {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 16px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     }
-    .form-label {
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
-    .input-container input {
-        width: 100%;
-    }
-    .form-control {
-        height: 48px;
-        font-size: 16px;
-        border-radius: 8px;
-        padding-left: 12px;
-        width: 100%;
-    }
-    .btn-register {
-        height: 48px;
+
+    .store-info h4 {
         font-size: 18px;
         font-weight: 600;
-        border-radius: 8px;
-        width: 100%;
-        background-color: #007bff;
-        color: white;
+        margin-bottom: 0;
+        color: #1a73e8;
     }
-    .btn-register:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
+
+    .product-info h1 {
+        font-size: 24px;
+        font-weight: 600;
     }
-    .text-links a {
-        color: #007bff;
+
+    .product-meta, .product-price, .review-meta {
         font-size: 14px;
-        text-decoration: none;
+        color: #666;
     }
-    .text-links a:hover {
-        text-decoration: underline;
+
+    .product-price {
+        font-size: 22px;
+        font-weight: 600;
+        color: #2b7de9;
+        margin-top: 12px;
     }
-    .error-message {
-        color: red;
+
+    .old-price {
+        text-decoration: line-through;
+        color: #aaa;
         font-size: 14px;
-        margin-top: 10px;
+        margin-left: 10px;
     }
-    .password-strength {
+
+    .btn {
+        border-radius: 10px;
+        font-weight: 500;
         font-size: 14px;
-        margin-top: 5px;
+        padding: 12px 20px;
+        transition: all 0.2s ease-in-out;
+        width: 180px;
+        text-align: center;
     }
-    .password-strength span {
-        padding: 3px 10px;
-        border-radius: 5px;
+
+    .btn-lg {
+        font-size: 15px;
     }
-    .weak { background-color: red; color: white; }
-    .medium { background-color: orange; color: white; }
-    .strong { background-color: green; color: white; }
-    .btn-group {
-        display: flex;
-        gap: 10px;
+
+    .btn-primary {
+        background-color: #2b7de9;
+        color: #fff;
+        border: none;
     }
-    .btn-group .btn {
-        flex-grow: 1;
+
+    .btn-primary:hover {
+        background-color: #1a5fc4;
     }
-    
-    /* 添加收藏按钮表单样式 */
-    .form-wishlist {
-        margin-top: 20px;
-        display: flex;
-        gap: 10px;
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .btn-success {
+        background-color: #20c997;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background-color: #17a185;
     }
 
     .btn-wishlist {
-        font-size: 18px;
-        font-weight: 600;
-        border-radius: 8px;
-        width: 100%;
-        padding: 12px;
+        width: 180px;
+    }
+
+    .btn_but {
+        width: 180px;
     }
 
     .btn-wishlist-add {
-        background-color: #007bff;
-        color: white;
+        background-color: #6c757d;
+        border: none;
+        color: #fff;
+    }
+
+    .btn-wishlist-add:hover {
+        background-color: #5a6268;
     }
 
     .btn-wishlist-remove {
-        background-color: #dc3545;
-        color: white;
+        background-color: #ff6b6b;
+        border: none;
+        color: #fff;
     }
 
-    .btn-wishlist:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
+    .btn-wishlist-remove:hover {
+        background-color: #e84141;
+    }
+
+    .carousel-item img {
+        border-radius: 8px;
+    }
+
+    .review-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-left: 4px solid #2b7de9;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .review-actions a {
+        font-size: 13px;
+        color: #2b7de9;
+        margin-right: 12px;
+    }
+
+    .floating-review-box {
+        position: fixed;
+        top: 120px;
+        left: 20px;
+        width: 240px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        padding: 16px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .floating-review-box h4 {
+        font-size: 16px;
+        margin-bottom: 12px;
+        color: #333;
+    }
+
+    .floating-review-box a {
+        font-size: 14px;
+        color: #2b7de9;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .floating-review-box a:hover {
+        text-decoration: underline;
+    }
+
+    h2 {
+        font-size: 20px;
+        margin-top: 40px;
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-right: 0;
+    }
+
+    .form-control {
+        border-left: 0;
     }
     
+    .btn-warning:hover {
+        background-color: #e6a800;
+    }
+    
+    @media (max-width: 768px) {
+        /* 商品图片和信息垂直排列 */
+        .row.mt-4 > div {
+            margin-bottom: 20px;
+        }
+
+        /* 让按钮占满宽度 */
+        .btn .btm_buy{
+            width: 100% !important;
+        }
+
+        /* 让输入框宽度占满 */
+        .input-group {
+            width: 100% !important;
+        }
+
+        .floating-review-box {
+            display: block;
+            position: fixed;
+            top: auto;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            border-radius: 0;
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+            z-index: 999;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .product-info h1 {
+            font-size: 20px;
+        }
+
+        .product-price {
+            font-size: 18px;
+        }
+
+        .review-card {
+            padding: 16px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .store-info h4 {
+            font-size: 16px;
+        }
+    }
+    .text-warning {
+        color: #ffc107;
+    }
+    .modern-review {
+        border-left: 6px solid #2b7de9;
+        padding: 18px 22px;
+        background-color: #fafafa;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        transition: all 0.2s ease;
+    }
+    
+    .review-user {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 2px;
+        color: #333;
+    }
+    
+    .review-submeta {
+        font-size: 13px;
+        color: #888;
+    }
+    
+    .review-rating i {
+        font-size: 16px;
+    }
+    
+    .review-content {
+        font-size: 30px;
+        color: #444;
+        margin-top: 8px;
+    }
+    
+    .review-actions a {
+        font-size: 13px;
+        color: #2b7de9;
+        text-decoration: none;
+    }
+    
+    .review-actions a:hover {
+        text-decoration: underline;
+    }
+    
+    .product-meta i.fa-boxes-stacked {
+        margin-right: 4px;
+    }    
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
+    
+    <!-- 店铺信息 -->
+    <div class="store-info">
+        <h4><i class="fa-solid fa-store"></i> Seller: {{ product.user }}</h4>
+    </div>
+
     <div class="row mt-4">
-        <!-- 左侧商品图片展示 -->
+        <!-- 商品图片 -->
         <div class="col-md-5">
             <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
                 <div class="carousel-inner">
                     {% for image in product.images.all %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            <img src="{{ image.image.url }}" class="d-block w-100 rounded" alt="{{ product.name }}">
+                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ product.name }}">
                         </div>
                     {% endfor %}
                 </div>
@@ -133,84 +327,196 @@
             </div>
         </div>
 
-        <!-- 右侧商品信息 -->
+        <!-- 商品信息 -->
         <div class="col-md-7">
-            <h1 class="fw-bold">{{ product.name }}</h1>
-            <p class="text-muted">SKU: {{ product.sku }}</p>
-            <p><strong>分类：</strong>{{ product.category.name }}</p>
-
-            <!-- 商品标签属性展示 -->
-            <div class="mt-3">
-                <h5 class="fw-bold">关键词</h5>
-                <ul class="list-unstyled">
-                    {% for attribute in product.attributes.all %}
-                        <li><strong>{{ attribute.key }}:</strong> {{ attribute.value }}</li>
-                    {% empty %}
-                        <li class="text-muted">暂无商品属性</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        
-            {% if product.pricing.discount %}
-                <p class="text-danger fs-4 fw-bold">折扣价: ¥{{ product.pricing.discount }}</p>
-                <p class="text-muted text-decoration-line-through">原价: ¥{{ product.pricing.price }}</p>
-            {% else %}
-                <p class="text-success fs-4 fw-bold">价格: ¥{{ product.pricing.price }}</p>
-            {% endif %}
-
-            <div class="d-flex gap-3 mt-3">
-                <form method="post" action="{% url 'add_to_cart' product.id %}">
-                    {% csrf_token %}
-                    <!-- 数量选择框 -->
-                    <div class="input-group" style="width: 150px;">
-                        <span class="input-group-text">数量</span>
-                        <input type="number" class="form-control" name="quantity" id="quantityInput" value="1" min="1" required>
-                    </div>
-                    <div class="btn-group mt-3">
-                        <button type="submit" class="btn btn-warning btn-lg">加入购物车</button>
-                    </div>
-                </form>
-            
-                <!-- 立即购买按钮，跳转到订单确认 -->
-                <form method="get" action="{% url 'checkout_single_product' product.id %}">
-                    <input type="hidden" name="quantity" id="quantityHidden">
-                    <button type="submit" class="btn btn-danger btn-lg">立即购买</button>
-                </form>
-            </div>
-        
-            <!-- 收藏按钮表单 -->
-            <form method="post" class="form-wishlist">
-                {% csrf_token %}
-                {% if user.is_authenticated %}
-                    {% if is_in_wishlist %}
-                        <button type="submit" name="remove_from_wishlist" class="btn btn-wishlist btn-wishlist-remove">取消收藏</button>
-                    {% else %}
-                        <button type="submit" name="add_to_wishlist" class="btn btn-wishlist btn-wishlist-add">添加收藏</button>
+            <div class="product-info">
+                <h1>{{ product.name }}</h1>
+                <p class="product-meta"><i class="fa-solid fa-barcode"></i> SKU: {{ product.sku }}</p>
+                <p class="product-meta">
+                    <i class="fa-solid fa-layer-group"></i> Classification:
+                    {% if product.category_level1 %}
+                        <a href="{% url 'category_detail' product.category_level1.id %}">{{ product.category_level1.name }}</a>
                     {% endif %}
-                {% else %}
-                    <p><a href="{% url 'login' %}">请登录后收藏商品</a></p>
+                    {% if product.category_level2 %} > 
+                        <a href="{% url 'category_detail' product.category_level2.id %}">{{ product.category_level2.name }}</a>
+                    {% endif %}
+                    {% if product.category_level3 %} > 
+                        <a href="{% url 'category_detail' product.category_level3.id %}">{{ product.category_level3.name }}</a>
+                    {% endif %}
+                </p>
+
+                <h5><i class="fa-solid fa-star"></i> Average Rating:</h5>
+                <div>
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= avg_rating|floatformat:0 %}
+                            <i class="fa-solid fa-star text-warning"></i>
+                        {% elif forloop.counter <= avg_rating %}
+                            <i class="fa-solid fa-star-half-stroke text-warning"></i>
+                        {% else %}
+                            <i class="fa-regular fa-star text-warning"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <span class="ms-2 text-muted">({{ avg_rating }}/5)</span>
+                </div>
+
+                <div class="mt-3">
+                    <h5><i class="fa-solid fa-tags"></i> Keywords</h5>
+                    <ul class="list-unstyled">
+                        {% for attribute in product.attributes.all %}
+                            <li><strong>{{ attribute.key }}:</strong> {{ attribute.value }}</li>
+                        {% empty %}
+                            <li class="text-muted">No product attributes</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <p class="product-price text-success"><i class="fa-solid fa-tag"></i> Price: ¥{{ product.pricing.price }}</p>
+
+                <p class="product-meta">
+                    <i class="fa-solid fa-boxes-stacked"></i> Stock Available:
+                    {% if product.stock_quantity > 0 %}
+                        <span class="text-success">{{ product.stock_quantity }}</span>
+                    {% else %}
+                        <span class="text-danger">Out of stock</span>
+                    {% endif %}
+                </p>
+
+                {% if product.stock_quantity > 0 %}
+                    <div class="row">
+                        <div>
+                            <form method="post" action="{% url 'add_to_cart' product.id %}">
+                                {% csrf_token %}
+                                <div class="input-group" style="width: 160px;">
+                                    <span class="input-group-text">Quantity</span>
+                                    <input type="number" class="form-control" name="quantity" id="quantityInput" value="1" min="1" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg mt-3"><i class="fa-solid fa-cart-plus"></i> Add to the cart</button>
+                            </form>
+                        </div>
+                        <div>
+                            <form method="post" class="mt-3">
+                                {% csrf_token %}
+                                {% if user.is_authenticated %}
+                                    {% if is_in_wishlist %}
+                                        <button type="submit" name="remove_from_wishlist" class="btn btn-wishlist btn-wishlist-add">
+                                            <i class="fa-solid fa-heart-crack"></i> Remove from favorites
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" name="add_to_wishlist" class="btn btn-wishlist btn-wishlist-remove">
+                                            <i class="fa-solid fa-heart"></i> Add to favorites
+                                        </button>
+                                    {% endif %}
+                                {% else %}
+                                    <p><a href="{% url 'login' %}">Please log in to collect the product</a></p>
+                                {% endif %}
+                            </form>
+                        </div>
+                    
+
+                        <div class="d-flex gap-3 mt-3">
+                            <form method="get" action="{% url 'checkout_single_product' product.id %}">
+                                <input type="hidden" name="quantity" id="quantityHidden">
+                                <button type="submit" class="btn btn-warning btn-lg mt-3 btn_buy">
+                                    <i class="fa-solid fa-bolt"></i> Buy it now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-danger text-center" style="font-size: 24px; font-weight: bold;">Sold Out</p>
                 {% endif %}
-            </form>
-        
-        
+                
+            </div>
         </div>
     </div>
 
-
-
-    <!-- 商品详情介绍 -->
+    <!-- 商品详情 -->
     <div class="row mt-5">
         <div class="col-12">
-            <h2 class="fw-bold">商品详情</h2>
+            <h2><i class="fa-solid fa-circle-info"></i> Product Description</h2>
             <p class="text-muted">{{ product.description|linebreaks }}</p>
         </div>
     </div>
+
+    <!-- 用户评价 -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2><i class="fa-solid fa-message"></i> Users Reviews</h2>
+            {% for review in reviews %}
+            <div class="review-card modern-review">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div>
+                        <h5 class="review-user">
+                            <i class="fa-solid fa-user"></i> {{ review.user.username }}
+                        </h5>
+                        <div class="review-submeta text-muted">
+                            <span><i class="fa-solid fa-receipt"></i> Order: #{{ review.order_item.order.id }}</span> |
+                            <span><i class="fa-regular fa-clock"></i> {{ review.created_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                    </div>
+                    {% if review.user == request.user %}
+                        <div class="review-actions text-end">
+                            <a href="{% url 'review_update' review.id %}" class="me-2"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
+                            <a href="{% url 'review_delete' review.id %}"><i class="fa-solid fa-trash-can"></i> Delete</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="review-rating mb-2">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <i class="fa-solid fa-star text-warning"></i>
+                        {% else %}
+                            <i class="fa-regular fa-star text-warning"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <span class="ms-2 text-muted">({{ review.rating }}/5)</span>
+                </div>
+
+                <div class="review-content">
+                    <p class="mb-0"><i class="fa-solid fa-quote-left me-1 text-muted"></i>{{ review.comment }}</p>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-muted">No reviews yet</p>
+        {% endfor %}
+
+        </div>
+    </div>
 </div>
-    
+
+<!-- 浮动评价框 -->
+<div class="floating-review-box">
+    <h4><i class="fa-solid fa-pencil-alt"></i> I want to comment</h4>
+    {% for item in can_review_items %}
+        <a href="{% url 'review_create' item.id %}"><i class="fa-solid fa-plus"></i> Order #{{ item.order.id }}</a>
+    {% empty %}
+        <p class="text-muted">There are currently no orders to review</p>
+    {% endfor %}
+</div>
+
 <script>
-    // 在点击 "立即购买" 时，将数量输入框的值复制到隐藏输入框
-    document.querySelector(".btn-danger").addEventListener("click", function() {
-        document.getElementById("quantityHidden").value = document.getElementById("quantityInput").value;
+ // 限制数量不得超过库存
+    const quantityInput = document.getElementById("quantityInput");
+    const maxStock = {{ product.stock_quantity }};
+
+    quantityInput.addEventListener("input", function () {
+        let val = parseInt(quantityInput.value);
+        if (val > maxStock) {
+            alert(`库存不足，最多只能购买 ${maxStock} 件`);
+            quantityInput.value = maxStock;
+        } else if (val < 1 || isNaN(val)) {
+            quantityInput.value = 1;
+        }
+    });
+
+    // 同步立即购买数量
+    const form = document.querySelector("form[action$='{% url 'checkout_single_product' product.id %}']");
+    form.addEventListener("submit", function (e) {
+        const quantity = document.getElementById("quantityInput").value;
+        document.getElementById("quantityHidden").value = quantity;
     });
 </script>
+
+
 {% endblock %}

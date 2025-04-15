@@ -12,9 +12,31 @@
         <!-- 商品信息 -->
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">商品信息</h4>
-            <div class="mb-3">
-                {{ product_form.as_p }}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {{ product_form.name.label_tag }}
+                    {{ product_form.name }}
+                </div>
+                <div class="col-md-6">
+                    {{ product_form.sku.label_tag }}
+                    {{ product_form.sku }}
+                    <button type="button" class="btn btn-secondary btn-sm" id="generate-sku">生成 SKU</button>
+                </div>
+                <div class="col-md-12">
+                    {{ product_form.description.label_tag }}
+                    {{ product_form.description }}
+                </div>
+                <div class="col-md-6">
+                    {{ product_form.hidden.label_tag }}
+                    {{ product_form.hidden }}
+                </div>
+                <div class="col-md-6">
+                    {{ product_form.is_physical.label_tag }}
+                    {{ product_form.is_physical }}
+                </div>
             </div>
+
+
         </div>
 
         <!-- 定价信息 -->
@@ -25,24 +47,34 @@
             </div>
         </div>
 
-        <!-- 商品图片管理 -->
+        <!-- 主图替换 -->
         <div class="card p-4 mt-4 shadow-sm">
-            <h4 class="fw-bold">商品图片</h4>
-            <div class="mb-3" id="image-container">
-                <h5>已上传的图片</h5>
+            <h4 class="fw-bold">主图替换</h4>
+            <div class="mb-3" id="primary-image-container">
                 {% for product_image in product.images.all %}
-                    <div class="image-item mb-2" id="image-{{ product_image.id }}-container">
-                        <img src="{{ product_image.image.url }}" alt="Product Image" width="100">
-                        {% if product_image.is_primary %}
-                            <span>主图</span>
-                        {% else %}
+                    {% if product_image.is_primary %}
+                        <div class="image-item mb-2" id="primary-image">
+                            <img src="{{ product_image.image.url }}" alt="Product Primary Image" width="100">
+                            <label for="replace-primary-image" class="d-block mt-2">替换主图</label>
+                            <input type="file" name="replace_primary_image" class="form-control">
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 非主图管理 -->
+        <div class="card p-4 mt-4 shadow-sm">
+            <h4 class="fw-bold">其他图片管理</h4>
+            <div class="mb-3" id="non-primary-image-container">
+                <h5>已上传的非主图</h5>
+                {% for product_image in product.images.all %}
+                    {% if not product_image.is_primary %}
+                        <div class="image-item mb-2" id="image-{{ product_image.id }}">
+                            <img src="{{ product_image.image.url }}" alt="Product Image" width="100">
                             <button type="button" class="btn btn-danger btn-sm" onclick="deleteImage({{ product_image.id }})">删除图片</button>
-                        {% endif %}
-                        <label>
-                            <input type="radio" name="primary_image" value="{{ product_image.id }}" {% if product_image.is_primary %}checked{% endif %}>
-                            设置为主图
-                        </label>
-                    </div>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -60,34 +92,59 @@
 </div>
 
 <script>
-    let imageCount = 0;
-
+    // 動態添加圖片上傳框
     document.getElementById("add-image-btn").addEventListener("click", function() {
-        imageCount++;
         const newImageItem = document.createElement("div");
-        newImageItem.classList.add("image-item");
+        newImageItem.classList.add("image-item", "mt-2");
+        const uniqueId = `new-image-${Date.now()}`;
+        newImageItem.setAttribute("id", uniqueId);
+
         newImageItem.innerHTML = `
-            <label for="images">上传图片</label>
             <input type="file" name="images" class="form-control" required>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeImage(this)">删除</button>
+            <button type="button" class="btn btn-danger btn-sm mt-1 remove-image-btn">删除</button>
         `;
         document.getElementById("additional-images").appendChild(newImageItem);
     });
 
-    function removeImage(button) {
-        button.parentElement.remove();
-    }
+    // 刪除動態新增圖片框 (事件委託)
+    document.getElementById("additional-images").addEventListener("click", function(e) {
+        if (e.target.classList.contains("remove-image-btn")) {
+            const imageItem = e.target.closest(".image-item");
+            if (imageItem) {
+                imageItem.remove();
+            }
+        }
+    });
 
+    // 刪除現有圖片
     function deleteImage(imageId) {
         if (confirm("确定要删除此图片？")) {
-            const form = document.createElement("form");
-            form.method = "POST";
-            form.innerHTML = `<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                              <input type="hidden" name="delete_image" value="${imageId}">`;
-            document.body.appendChild(form);
-            form.submit();
+            fetch("", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: `delete_image=${imageId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    const imageElement = document.getElementById(`image-${imageId}`);
+                    if (imageElement) {
+                        imageElement.remove();
+                        alert(data.message);
+                    }
+                } else {
+                    alert("刪除失敗: " + data.message);
+                }
+            })
+            .catch(error => {
+                alert("刪除操作失敗，請稍後再試！");
+                console.error("Error deleting image:", error);
+            });
         }
     }
-</script>
 
+</script>
 {% endblock %}

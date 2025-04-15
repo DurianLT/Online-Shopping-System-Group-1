@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'shoppingtrolley',
     'order',
     'merchant',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -123,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Shanghai"
 
 USE_I18N = True
 

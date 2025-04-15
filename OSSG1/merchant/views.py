@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import JsonResponse
@@ -7,7 +7,8 @@ from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from merchant.decorators import merchant_required
 from django.utils.decorators import method_decorator
-from products.models import Product, Pricing, ProductImage, CategoryLevel1, CategoryLevel2, CategoryLevel3
+from products.models import Product, Pricing, ProductImage, CategoryLevel1, CategoryLevel2, CategoryLevel3, \
+    ProductAttribute
 from users.models import Order
 from merchant.forms import ProductForm, PricingForm
 from django.db.models import Q
@@ -47,7 +48,7 @@ class ProductListView(MerchantRequiredMixin, ListView):
     def get_queryset(self):
         """ 获取筛选后的产品列表 """
         query = self.request.GET.get("q", "").strip()
-        products = Product.objects.filter(user=self.request.user)
+        products = Product.objects.filter(user=self.request.user, is_deleted=False)
 
         if query:
             products = products.filter(
@@ -71,7 +72,6 @@ class AddProductView(MerchantRequiredMixin, CreateView):
     success_url = reverse_lazy("merchant:product_list")
 
     def form_valid(self, form):
-        print("2222222")
         form.instance.user = self.request.user  # 设置商家为当前用户
         response = super().form_valid(form)
 
@@ -91,18 +91,29 @@ class AddProductView(MerchantRequiredMixin, CreateView):
             pricing.product = self.object
             pricing.save()
 
-        # 处理图片上传
-        images = self.request.FILES.getlist("images")
-        is_primary_set = False
-        for image in images:
-            product_image = ProductImage(product=self.object, image=image)
-            if not is_primary_set:
-                product_image.is_primary = True
-                is_primary_set = True
-            product_image.save()
+            # 处理图片上传
+            images = self.request.FILES.getlist("images")
+            is_primary_set = False
+            for image in images:
+                product_image = ProductImage(product=self.object, image=image)
+                if not is_primary_set:
+                    product_image.is_primary = True
+                    is_primary_set = True
+                product_image.save()
 
-        messages.success(self.request, "商品添加成功！")
-        return response
+            # 获取并保存标签
+            tags = self.request.POST.get("tags", "").split(",")  # 获取标签并分割
+            for tag in tags:
+                if tag:  # 过滤空标签
+                    key, value = tag.split(":")  # 假设每个标签是以 'key: value' 格式
+                    ProductAttribute.objects.create(
+                        product=self.object,
+                        key=key.strip(),
+                        value=value.strip()
+                    )
+
+            messages.success(self.request, "商品添加成功！")
+            return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -128,6 +139,23 @@ class GetSubcategoriesView(View):
         return JsonResponse(subcategories, safe=False)
 
 
+
+from django.http import JsonResponse
+from django.views import View
+
+class GetRecommendedTagsView(View):
+    def get(self, request, *args, **kwargs):
+        category_name = request.GET.get("category_name")
+        try:
+            category = CategoryLevel1.objects.get(name=category_name)
+            tags = list(category.recommended_tags.values_list('tag_name', flat=True))
+        except CategoryLevel1.DoesNotExist:
+            tags = []
+        return JsonResponse(tags, safe=False)
+
+
+
+
 class OrderListView(MerchantRequiredMixin, ListView):
     """ 商家查看订单列表 """
     template_name = "merchant/order_list.html"
@@ -150,7 +178,6 @@ class OrderListView(MerchantRequiredMixin, ListView):
         return context
 
 
-
 class OrderDetailView(MerchantRequiredMixin, DetailView):
     """ 商家查看订单详情 """
     model = Order
@@ -158,6 +185,29 @@ class OrderDetailView(MerchantRequiredMixin, DetailView):
 
     def get_object(self, queryset=None):
         return get_object_or_404(Order, id=self.kwargs["order_id"], seller=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 传递订单状态变更历史到模板
+        context["status_histories"] = self.object.status_histories.all().order_by("-changed_at")
+
+        # 计算商品列表中的小计
+        items_with_subtotal = []
+        for item in self.object.items.all():
+            item_dict = {
+                "product": item.product,
+                "price": item.price,
+                "quantity": item.quantity,
+                "subtotal": item.price * item.quantity,
+            }
+            items_with_subtotal.append(item_dict)
+
+        # 将计算好的商品列表添加到上下文中
+        context["items"] = items_with_subtotal
+        return context
+
+
+from django.http import JsonResponse
 
 
 class EditProductView(MerchantRequiredMixin, UpdateView):
@@ -172,25 +222,46 @@ class EditProductView(MerchantRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["product_form"] = ProductForm(instance=self.object)
-        context["pricing_form"] = PricingForm(instance=self.object.pricing)
+        context["product_form"] = ProductForm(instance=self.get_object())  # 使用 get_object()
+        context["pricing_form"] = PricingForm(instance=self.get_object().pricing)
         return context
 
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        pricing = get_object_or_404(Pricing, product=self.object)
-        pricing_form = PricingForm(self.request.POST, instance=pricing)
+    def post(self, request, *args, **kwargs):
+        # 確保 self.object 正確初始化
+        self.object = self.get_object()
 
-        if pricing_form.is_valid():
-            pricing_form.save()
+        # 處理刪除圖片請求
+        delete_image_id = request.POST.get("delete_image")
+        if delete_image_id:
+            try:
+                image_instance = ProductImage.objects.get(
+                    id=delete_image_id,
+                    product=self.object,
+                    is_primary=False
+                )
+                image_instance.delete()
+                return JsonResponse({"status": "success", "message": "圖片刪除成功"})
+            except ProductImage.DoesNotExist:
+                return JsonResponse({"status": "error", "message": "圖片不存在或無權限刪除"}, status=404)
 
-        # 处理图片
-        images = self.request.FILES.getlist("images")
+        # 替換主圖
+        primary_image = request.FILES.get("replace_primary_image")
+        if primary_image:
+            primary_image_instance = self.object.images.filter(is_primary=True).first()
+            if primary_image_instance:
+                primary_image_instance.image = primary_image
+                primary_image_instance.save()
+
+        # 添加非主圖
+        images = request.FILES.getlist("images")
         for image in images:
             ProductImage.objects.create(product=self.object, image=image)
 
-        messages.success(self.request, "商品信息已更新！")
-        return response
+        messages.success(request, "商品信息已更新！")
+        return super().post(request, *args, **kwargs)
+
+
+
 
 
 class ShipOrderView(MerchantRequiredMixin, View):
@@ -209,18 +280,24 @@ class ShipOrderView(MerchantRequiredMixin, View):
         return redirect("merchant:order_detail", order_id=order.id)
 
 
-class DeleteProductView(MerchantRequiredMixin, DeleteView):
-    """ 商家删除商品 """
-    model = Product
-    template_name = "merchant/delete_product.html"
-    success_url = reverse_lazy("merchant:product_list")
+from django.views import View
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
 
-    def get_object(self, queryset=None):
-        return get_object_or_404(Product, id=self.kwargs["product_id"], user=self.request.user)
+class DeleteProductView(MerchantRequiredMixin, View):
+    """ 商家软删除商品 """
+    def post(self, request, *args, **kwargs):
+        product = get_object_or_404(Product, id=kwargs["product_id"], user=request.user)
+        product.soft_delete()
+        messages.success(request, "商品已成功删除（软删除）")
+        return redirect("merchant:product_list")
 
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, "商品已成功删除")
-        return super().delete(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        """可选：用于渲染确认删除页面"""
+        product = get_object_or_404(Product, id=kwargs["product_id"], user=request.user)
+        return render(request, "merchant/delete_product.html", {"product": product})
+
+
 
 from django.contrib.auth.decorators import login_required
 

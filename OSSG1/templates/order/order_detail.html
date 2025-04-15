@@ -49,7 +49,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in order.items.all %}
+                {% for item in items %}
                 <tr>
                     <td>
                         <a href="{% url 'product-detail' item.product.id %}" class="text-decoration-none">
@@ -58,6 +58,7 @@
                     </td>
                     <td>¥{{ item.price }}</td>
                     <td>{{ item.quantity }}</td>
+                    <td>¥{{ item.subtotal}}</td>
 
                 </tr>
                 {% endfor %}

@@ -5,6 +5,14 @@ from products.models import Product, Pricing, ProductImage
 from django import forms
 from products.models import Product, CategoryLevel1, CategoryLevel2, CategoryLevel3
 
+import random
+import string
+from django.core.exceptions import ValidationError
+
+def generate_sku():
+    return "SKU-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
+
 
 class ProductForm(forms.ModelForm):
     category_level1 = forms.ModelChoiceField(
@@ -37,7 +45,7 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = ['name', 'description', 'sku', 'hidden', 'is_physical',
                   'category_level1', 'category_level2', 'category_level3',
-                  'custom_category_level1', 'custom_category_level2', 'custom_category_level3']
+                  'custom_category_level1', 'custom_category_level2', 'custom_category_level3', 'stock_quantity']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -96,6 +104,19 @@ class ProductForm(forms.ModelForm):
                         parent=cleaned_data["category_level2"]
                     )
                 cleaned_data["category_level3"] = category3
+
+        sku = cleaned_data.get("sku")
+
+        # 检查是否已存在相同的 SKU（排除当前对象本身，用于编辑时）
+        if sku and Product.objects.filter(sku=sku).exclude(id=self.instance.id).exists():
+            # 自动生成唯一 SKU，直到不重复为止（防止并发冲突）
+            for _ in range(5):  # 尝试最多 5 次
+                new_sku = generate_sku()
+                if not Product.objects.filter(sku=new_sku).exists():
+                    cleaned_data["sku"] = new_sku
+                    break
+            else:
+                raise ValidationError("系统无法生成唯一 SKU，请稍后再试。")
 
         return cleaned_data
 

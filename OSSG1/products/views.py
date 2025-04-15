@@ -10,28 +10,30 @@ from django.core.paginator import Paginator
 
 class ProductListView(ListView):
     model = Product
-    template_name = 'product_list.html'  # 显示产品的模板
+    template_name = 'product_list.html'
     context_object_name = 'products'
-    paginate_by = 8  # 每页8个商品
+    paginate_by = 8
 
     def get_queryset(self):
-        queryset = Product.objects.all().filter(hidden=False).order_by('created_at')
-
-        # 基于三级分类筛选
+        queryset = Product.objects.all().filter(hidden=False, is_deleted=False, stock_quantity__gt=0).order_by('created_at')
         level3_id = self.kwargs.get('level3_id')
+        level2_id = self.kwargs.get('level2_id')
+        level1_id = self.kwargs.get('level1_id')
+
         if level3_id:
             queryset = queryset.filter(category_level3_id=level3_id)
-
-        # 如果没有选择三级分类，允许选择一级或二级分类
-        level2_id = self.kwargs.get('level2_id')
-        if level2_id:
+        elif level2_id:
             queryset = queryset.filter(category_level2_id=level2_id)
-
-        level1_id = self.kwargs.get('level1_id')
-        if level1_id:
+        elif level1_id:
             queryset = queryset.filter(category_level1_id=level1_id)
 
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 预加载所有分类，减少数据库查询次数
+        context['category_level1_list'] = CategoryLevel1.objects.prefetch_related('subcategories__subcategories')
+        return context
 
 
 
@@ -40,6 +42,8 @@ from django.shortcuts import redirect
 from .models import Product
 
 from django.shortcuts import redirect
+from users.models import Review, OrderItem
+from django.db.models import Avg
 
 
 class ProductDetailView(DetailView):
@@ -50,15 +54,26 @@ class ProductDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        product = self.get_object()
 
-        # 检查用户是否登录
+        # 收藏状态
+        context['is_in_wishlist'] = False
         if user.is_authenticated:
-            product = self.get_object()
-            # 检查当前用户是否已收藏该商品
             context['is_in_wishlist'] = Wishlist.objects.filter(user=user, product=product).exists()
+
+        # 评价相关内容
+        order_items = product.order_items.all()
+        reviews = Review.objects.filter(order_item__in=order_items, parent_review=None).select_related('user', 'order_item', 'order_item__order')
+        context['reviews'] = reviews
+
+        avg_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+        context['avg_rating'] = round(avg_rating, 1)
+
+        # 当前用户能评价的订单项
+        if user.is_authenticated:
+            context['can_review_items'] = order_items.filter(order__user=user).exclude(reviews__user=user)
         else:
-            # 如果用户未登录，则无法收藏商品
-            context['is_in_wishlist'] = False
+            context['can_review_items'] = []
 
         return context
 
@@ -125,10 +140,10 @@ class ProductSearchView(ListView):
         if query:
             # 使用 Q 查询来处理多个条件，忽略大小写进行模糊匹配
             return Product.objects.filter(
-                Q(name__icontains=query) | Q(description__icontains=query)
+                Q(hidden=False, is_deleted=False, stock_quantity__gt=0) & (Q(name__icontains=query) | Q(description__icontains=query))
             )
         else:
-            return Product.objects.all()  # 如果没有输入搜索条件，则返回所有商品
+            return Product.objects.filter(hidden=False, is_deleted=False, stock_quantity__gt=0)  # 如果没有输入搜索条件，则返回所有商品
 
 from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3
 
@@ -161,13 +176,13 @@ from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3, Product
 def category_detail(request, category_id, level=1):
     if level == 1:
         category = get_object_or_404(CategoryLevel1, pk=category_id)
-        products = Product.objects.filter(category_level1=category)
+        products = Product.objects.filter(hidden=False, is_deleted=False, stock_quantity__gt=0, category_level1=category)
     elif level == 2:
         category = get_object_or_404(CategoryLevel2, pk=category_id)
-        products = Product.objects.filter(category_level2=category)
+        products = Product.objects.filter(hidden=False, is_deleted=False, stock_quantity__gt=0, category_level2=category)
     elif level == 3:
         category = get_object_or_404(CategoryLevel3, pk=category_id)
-        products = Product.objects.filter(category_level3=category)
+        products = Product.objects.filter(hidden=False, is_deleted=False, stock_quantity__gt=0, category_level3=category)
     
     return render(request, 'products/category_detail.html', {'category': category, 'products': products})
 
@@ -183,7 +198,7 @@ class ProductListApiView(ListView):
     def get(self, request, *args, **kwargs):
         page_number = request.GET.get('page', 1)
         # 添加排序条件，按创建时间排序
-        products = Product.objects.all().filter(hidden=False).order_by('created_at')  # 或者按其他字段排序
+        products = Product.objects.all().filter(hidden=False, is_deleted=False, stock_quantity__gt=0).order_by('created_at')  # 或者按其他字段排序
 
         paginator = Paginator(products, 8)  # 每页 8 个商品
         page_obj = paginator.get_page(page_number)
@@ -214,8 +229,54 @@ class ProductListApiView(ListView):
                 'discount_end_date': discount_end_date,  # 折扣结束日期
             })
 
-        return JsonResponse({'products': products_data})
+        return JsonResponse({
+            'products': products_data,
+            'total_products': products.count()
+        })
 
+# views.py
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy, reverse
+from django.shortcuts import get_object_or_404
+from users.models import Review, OrderItem
+from .forms import ReviewForm
 
+class ReviewCreateView(CreateView):
+    model = Review
+    form_class = ReviewForm
+    template_name = 'reviews/review_form.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        self.order_item = get_object_or_404(OrderItem, pk=self.kwargs['pk'], order__user=request.user)
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.order_item = self.order_item
+        form.instance.author_type = "buyer"
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('product-detail', kwargs={'pk': self.order_item.product.pk})
+
+class ReviewUpdateView(UpdateView):
+    model = Review
+    form_class = ReviewForm
+    template_name = 'reviews/review_form.html'
+
+    def get_queryset(self):
+        return Review.objects.filter(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse('product-detail', kwargs={'pk': self.object.order_item.product.pk})
+
+class ReviewDeleteView(DeleteView):
+    model = Review
+    template_name = 'reviews/review_confirm_delete.html'
+
+    def get_queryset(self):
+        return Review.objects.filter(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse('product-detail', kwargs={'pk': self.object.order_item.product.pk})
 

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}管理标签{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">管理推荐标签</h1>
+
+    {% for category in categories %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">{{ category.name }}</h3>
+            </div>
+            <div class="card-body">
+                <!-- 显示标签列表 -->
+                <ul class="list-group mb-4">
+                    {% for tag in category.recommended_tags.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ tag.tag_name }}
+                            <form method="POST" action="{% url 'adminpanel:delete_tag' tag.id %}" class="d-inline-block">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash-alt"></i> 删除
+                                </button>
+                            </form>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">暂无标签</li>
+                    {% endfor %}
+                </ul>
+
+                <!-- 添加标签 -->
+                <form method="POST" action="{% url 'adminpanel:add_tag' category.id %}">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" name="tag_name" class="form-control" placeholder="请输入新标签" required>
+                        <button class="btn btn-success" type="submit">
+                            <i class="fas fa-plus"></i> 添加标签
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

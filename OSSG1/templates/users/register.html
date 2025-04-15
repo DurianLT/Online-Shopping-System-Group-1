@@ -1,32 +1,42 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}用户注册{% endblock %}
+{% block title %}User Registration{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/users/register.css' %}">
 <style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .register-wrapper {
+        display: flex;
+        justify-content: center;
+        padding-top: 8vh;
+        padding-bottom: 5vh;
+    }
+
     .register-container {
         width: 90%;
-        max-width: 400px;
+        max-width: 420px;
         background: #fff;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        margin-top: 5vh;
+        padding: 2.5rem;
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
     }
+
     .form-group {
         display: flex;
         flex-direction: column;
         width: 100%;
     }
+
     .form-label {
         font-weight: 600;
         margin-bottom: 5px;
     }
-    .input-container input {
-        width: 100%;
-    }
+
     .form-control {
         height: 48px;
         font-size: 1rem;
@@ -36,10 +46,12 @@
         border: 1px solid #ccc;
         transition: border-color 0.3s ease-in-out;
     }
+
     .form-control:focus {
         border-color: #007bff;
         outline: none;
     }
+
     .btn-register {
         height: 48px;
         font-size: 1.1rem;
@@ -50,32 +62,43 @@
         color: white;
         transition: background-color 0.3s ease-in-out;
     }
+
     .btn-register:hover {
         background-color: #0056b3;
     }
+
     .btn-register:disabled {
         background-color: #cccccc;
         cursor: not-allowed;
     }
+
     .text-links a {
         color: #007bff;
         font-size: 14px;
         text-decoration: none;
     }
+
     .text-links a:hover {
         text-decoration: underline;
     }
+
     .error-message {
         color: red;
         font-size: 14px;
         margin-top: 10px;
     }
 
+    .required-note {
+        color: red;
+        font-size: 14px;
+        margin-bottom: 1rem;
+        text-align: right;
+    }
+
     @media (max-width: 768px) {
         .register-container {
             width: 95%;
-            padding: 1.5rem;
-            margin-top: 3vh;
+            padding: 1.8rem;
         }
         .form-control, .btn-register {
             height: 44px;
@@ -86,12 +109,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center vh-100">
+<div class="register-wrapper">
     <div class="register-container">
-        <h2 class="text-center mb-4">用户注册</h2>
+        <h2 class="text-center mb-4">User Registration</h2>
+
+        <div class="required-note">Fields marked with <span class="text-danger">*</span> are required.</div>
+
         <form method="post" id="register-form">
             {% csrf_token %}
-            
+
             {% for field in form %}
             <div class="mb-3 form-group">
                 <label for="{{ field.id_for_label }}" class="form-label">
@@ -109,12 +135,12 @@
                 {% endif %}
             </div>
             {% endfor %}
-            
-            <button type="submit" class="btn btn-success btn-register" id="register-btn" disabled>注册</button>
+
+            <button type="submit" class="btn-register" id="register-btn" disabled>Register</button>
         </form>
-        
+
         <div class="text-center text-links mt-3">
-            <p class="mb-1">已有账号？ <a href="{% url 'login' %}">去登录</a></p>
+            <p class="mb-1">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
         </div>
     </div>
 </div>
@@ -125,9 +151,9 @@
     document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("register-form");
         const registerBtn = document.getElementById("register-btn");
-        
+
         form.addEventListener("input", function () {
-            const requiredFields = Array.from(form.querySelectorAll("input[required]"));
+            const requiredFields = Array.from(form.querySelectorAll("input[required], textarea[required]"));
             const allFilled = requiredFields.every(input => input.value.trim() !== "");
             registerBtn.disabled = !allFilled;
         });

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}商品列表{% endblock %}
+{% block title %}Product List{% endblock %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/products/product_list.css' %}">
@@ -11,6 +11,13 @@
             max-width: 1200px;
             height: 400px;
             margin: 0 auto;
+            border-radius: 16px; /* 圆角 */
+            overflow: hidden; /* 防止圆角被内容溢出破坏 */
+            border: 2px solid #ddd; /* 描边 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* 可选：增加阴影提升层次感 */
+        }
+        .carousel-item img {
+            border-radius: 0; /* 图片不需要额外圆角，由外层容器控制 */
         }
 
         .carousel-inner,
@@ -34,30 +41,191 @@
         #carouselExample:hover .custom-arrow {
             filter: invert(1); /* 反转颜色 */
         }
+        
+        .category-sidebar {
+            width: 220px;
+            height: 400px; /* 设置最大高度 */
+            overflow-y: auto; /* 允许垂直滚动 */
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            position: relative;
+            z-index: 10;
+            border-radius: 12px; /* 添加圆角 */
+        }
+        
+        .category-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            border-radius: 8px; /* 给单个分类项加圆角 */
+        }
+        
+        .subcategory-container {
+            position: relative;
+            flex-grow: 1;    
+            width: 0px;
+        }
+
+        .category-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .subcategory-panel {
+            position: absolute;
+            top: 0;
+            left: 0px;
+            width: 720px;
+            height: 400px; /* 设置最大高度 */
+            overflow-y: auto; /* 允许垂直滚动 */
+            background: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: none;
+            overflow-y: auto;
+            z-index: 20;
+            padding: 20px;
+            border-radius: 12px; /* 子分类浮动卡片圆角 */
+        }
+        
+        .subcategory-group {
+            margin-bottom: 20px;
+        }
+        
+        .subcategory-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .subcategory-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .subcategory-list a {
+            background: #f2f2f2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .subcategory-list a:hover {
+            background-color: #e0e0e0;
+        }
+
+        .category-dropdown {
+            display: none;
+            padding-bottom: 10px;
+        }
+
+        /* 响应式：当屏幕宽度小于768px时，隐藏轮播图并将分类改为下拉菜单 */
+        @media (max-width: 768px) {
+            #carouselExample {
+                display: none; /* 隐藏轮播图 */
+            }
+
+            .category-sidebar {
+                display: none; /* 隐藏左侧分类栏 */
+            }
+
+            .category-dropdown {
+                display: block;
+            }
+
+            .subcategory-container {
+                display: none; /* 隐藏子分类 */
+            }
+        }
+
     </style>
 {% endblock %}
 
 {% block content %}
-    <!-- 轮播图部分 -->
-    <div id="carouselExample" class="carousel slide mb-4" data-bs-ride="carousel" data-bs-interval="5000">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="https://cf.shopee.tw/file/sg-11134201-22120-zbz53y290ilv1f" class="d-block w-100" alt="...">
+<div class="container">
+    <div class="row">
+        <div class="container d-flex col-md-3">
+
+            <!-- 商品分类下拉菜单 -->
+            <div class="dropdown category-dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Categories
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+                    {% for category1 in categories %}
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item" href="{% url 'category_detail' category1.id %}">{{ category1.name }}</a>
+                            <ul class="dropdown-menu">
+                                {% for category2 in category1.subcategories.all %}
+                                    <li class="dropdown-submenu">
+                                        <a class="dropdown-item" href="{% url 'category_level2_detail' category2.id %}">{{ category2.name }}</a>
+                                        <ul class="dropdown-menu">
+                                            {% for category3 in category2.subcategories.all %}
+                                                <li><a class="dropdown-item" href="{% url 'category_level3_detail' category3.id %}">{{ category3.name }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
-            <div class="carousel-item">
-                <img src="https://cs-b.ecimg.tw/items/DYBA0XA900DYPNP/000001_1662954916.jpg" class="d-block w-100" alt="...">
+
+            <!-- 左侧分类栏 -->
+            <div class="category-sidebar">
+                {% for category1 in categories %}
+                    <div class="category-item" data-index="{{ forloop.counter0 }}">
+                        {{ category1.name }}
+                    </div>
+                {% endfor %}
             </div>
-            <div class="carousel-item">
-                <img src="https://f.ecimg.tw/items/DCACRIA9008FAUF/000001_1505973489.jpg" class="d-block w-100" alt="...">
+        
+            <!-- 子分类悬浮卡片 -->
+            <div class="subcategory-container">
+                {% for category1 in categories %}
+                    <div class="subcategory-panel" data-index="{{ forloop.counter0 }}">
+                        {% for category2 in category1.subcategories.all %}
+                            <div class="subcategory-group">
+                                <div class="subcategory-title">{{ category2.name }}</div>
+                                <div class="subcategory-list">
+                                    {% for category3 in category2.subcategories.all %}
+                                        <a href="{% url 'category_level3_detail' category3.id %}">{{ category3.name }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
             </div>
         </div>
-        <button class="carousel-control-prev custom-arrow" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        </button>
-        <button class="carousel-control-next custom-arrow" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        </button>
+        
+        <!-- 右侧轮播图 -->
+        <div class="col-md-9">
+            <div id="carouselExample" class="carousel slide mb-4" data-bs-ride="carousel" data-bs-interval="5000">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="https://cf.shopee.tw/file/sg-11134201-22120-zbz53y290ilv1f" class="d-block w-100" alt="...">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="https://cs-b.ecimg.tw/items/DYBA0XA900DYPNP/000001_1662954916.jpg" class="d-block w-100" alt="...">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="https://f.ecimg.tw/items/DCACRIA9008FAUF/000001_1505973489.jpg" class="d-block w-100" alt="...">
+                    </div>
+                </div>
+                <button class="carousel-control-prev custom-arrow" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                </button>
+                <button class="carousel-control-next custom-arrow" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
     </div>
+</div>
 
     <!-- 商品列表 -->
     <div class="container">
@@ -84,75 +252,121 @@
             {% endfor %}
         </div>
 
-        <div id="loading" style="display:none;">正在加载...</div>
-        <div id="end-message" style="display:none;">到底了QAQ~</div>
+        <div id="loading" style="display:none;">Loading...</div>
+        <div id="end-message" style="display:none;">End QAQ~</div>
     </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    let currentPage = 1;
-let loading = false;
+document.addEventListener('DOMContentLoaded', function () {
+    const items = document.querySelectorAll('.category-item');
+    const panels = document.querySelectorAll('.subcategory-panel');
 
-// 检查是否滚动到页面底部
-window.addEventListener('scroll', function () {
-    if (loading) return;
+    let timeout;
 
-    // 判断滚动位置
-    if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
-        loadMoreProducts();
-    }
-});
-
-// 加载更多商品
-function loadMoreProducts() {
-    loading = true;
-    document.getElementById('loading').style.display = 'block';  // 显示加载提示
-
-    // 通过当前页码请求数据
-    fetch(`/api/products/?page=${currentPage+ 1}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.products.length/8 == 1) {
-                // 当前页码加 1
-                currentPage += 1;
-
-                const productList = document.getElementById('product-list');
-                data.products.forEach(product => {
-                    const productHTML = `
-                        <div class="col product-item">
-                            <div class="card h-100">
-                                <a href="/product/${product.id}" class="text-decoration-none">
-                                    <img src="${product.image_url}" class="card-img-top" alt="${product.name}">
-                                    <div class="card-body">
-                                        <h5 class="card-title text-dark">${product.name}</h5>
-                                        <p class="card-text text-muted">${product.description.slice(0, 50)}...</p>
-                                        <p class="text-danger fw-bold">
-                                            {% if product.pricing.discount %}
-                                                ¥${product.price} <del class="text-muted">¥${ product.discount }</del>
-                                            {% else %}
-                                                ¥${ product.price }
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                    productList.insertAdjacentHTML('beforeend', productHTML);
-                });
-            } else {
-                // 如果没有更多商品，显示"到底了"
-                document.getElementById('end-message').style.display = 'block';
-            }
-            document.getElementById('loading').style.display = 'none';  // 隐藏加载提示
-            loading = false;
-        })
-        .catch(error => {
-            console.error("加载商品时出错:", error);
-            document.getElementById('loading').style.display = 'none';
-            loading = false;
+    items.forEach((item, index) => {
+        item.addEventListener('mouseenter', () => {
+            clearTimeout(timeout);
+            panels.forEach(panel => panel.style.display = 'none');
+            const panel = document.querySelector(`.subcategory-panel[data-index="${index}"]`);
+            if (panel) panel.style.display = 'block';
         });
-}
+
+        item.addEventListener('mouseleave', () => {
+            timeout = setTimeout(() => {
+                const panel = document.querySelector(`.subcategory-panel[data-index="${index}"]`);
+                if (panel) panel.style.display = 'none';
+            }, 300);
+        });
+
+        const panel = document.querySelector(`.subcategory-panel[data-index="${index}"]`);
+        if (panel) {
+            panel.addEventListener('mouseenter', () => clearTimeout(timeout));
+            panel.addEventListener('mouseleave', () => {
+                panel.style.display = 'none';
+            });
+        }
+    });
+});
 </script>
+
+<script>
+    let currentPage = 1;
+    let totalPages = null;
+    let loading = false;
+    let allLoaded = false;
+
+    function loadMoreProducts() {
+        if (loading || allLoaded) return;
+
+        loading = true;
+        document.getElementById('loading').style.display = 'block';
+
+        fetch(`/api/products/?page=${currentPage + 1}`)
+            .then(response => response.json())
+            .then(data => {
+                const productList = document.getElementById('product-list');
+
+                if (totalPages === null) {
+                    totalPages = Math.ceil(data.total_products / 8);
+                }
+
+                const products = data.products;
+
+                if (products.length > 0) {
+                    currentPage++;
+
+                    products.forEach(product => {
+                        const productHTML = `
+                            <div class="col product-item">
+                                <div class="card h-100">
+                                    <a href="/product/${product.id}" class="text-decoration-none">
+                                        <img src="${product.image_url}" class="card-img-top" alt="${product.name}">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-dark">${product.name}</h5>
+                                            <p class="card-text text-muted">${product.description.slice(0, 50)}...</p>
+                                            <p class="text-danger fw-bold">
+                                                ${product.discount 
+                                                    ? `¥${product.price} <del class="text-muted">¥${product.discount}</del>` 
+                                                    : `¥${product.price}`}
+                                            </p>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        productList.insertAdjacentHTML('beforeend', productHTML);
+                    });
+
+                    if (currentPage >= totalPages) {
+                        allLoaded = true;
+                        document.getElementById('end-message').style.display = 'block';
+                    }
+                } else {
+                    allLoaded = true;
+                    document.getElementById('end-message').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error("加载商品时出错:", error);
+            })
+            .finally(() => {
+                loading = false;
+                document.getElementById('loading').style.display = 'none';
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMoreProducts();
+    });
+
+    window.addEventListener('scroll', function () {
+        if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 10)) {
+            loadMoreProducts();
+        }
+    });
+</script>
+
+    
 {% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>确认删除这条评价吗？</h2>
+  <p>{{ object.comment }}</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">确认删除</button>
+  </form>
+  <a href="javascript:history.back()">取消</a>
+{% endblock %}
