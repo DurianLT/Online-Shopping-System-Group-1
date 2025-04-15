@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}商家管理后台{% endblock %}
+{% block title %}Merchant Dashboard{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
@@ -38,72 +38,70 @@
 {% block content %}
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">商家管理后台</h2>
-        <div class="text-muted">最后更新: {% now "Y-m-d H:i" %}</div>
+        <h2 class="fw-bold mb-0">Merchant Dashboard</h2>
+        <div class="text-muted">Last Updated: {% now "Y-m-d H:i" %}</div>
     </div>
 
-    <!-- 数据概览卡片 -->
+    <!-- Overview Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card dashboard-card h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="stat-label">商品总数</h6>
+                            <h6 class="stat-label">Total Products</h6>
                             <h3 class="stat-number text-primary">{{ products.count }}</h3>
                         </div>
                         <div class="bg-primary bg-opacity-10 p-3 rounded">
                             <i class="fas fa-boxes text-primary fa-2x"></i>
                         </div>
                     </div>
-                    <a href="{% url 'merchant:product_list' %}" class="btn btn-sm btn-outline-primary mt-3">管理商品</a>
+                    <a href="{% url 'merchant:product_list' %}" class="btn btn-sm btn-outline-primary mt-3">Manage Products</a>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card dashboard-card h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="stat-label">待处理订单</h6>
+                            <h6 class="stat-label">Pending Orders</h6>
                             <h3 class="stat-number text-warning">{{ pending_orders }}</h3>
                         </div>
                         <div class="bg-warning bg-opacity-10 p-3 rounded">
                             <i class="fas fa-clipboard-list text-warning fa-2x"></i>
                         </div>
                     </div>
-                    <a href="{% url 'merchant:order_list' %}" class="btn btn-sm btn-outline-warning mt-3">处理订单</a>
+                    <a href="{% url 'merchant:order_list' %}" class="btn btn-sm btn-outline-warning mt-3">Process Orders</a>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card dashboard-card h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="stat-label">累计销售额</h6>
+                            <h6 class="stat-label">Total Sales</h6>
                             <h3 class="stat-number text-success">¥{{ total_sales }}</h3>
                         </div>
                         <div class="bg-success bg-opacity-10 p-3 rounded">
                             <i class="fas fa-dollar-sign text-success fa-2x"></i>
                         </div>
                     </div>
-                    <a href="{% url 'merchant:order_list' %}" class="btn btn-sm btn-outline-success mt-3">查看销售</a>
+                    <a href="{% url 'merchant:order_list' %}" class="btn btn-sm btn-outline-success mt-3">View Sales</a>
                 </div>
             </div>
         </div>
-        
     </div>
 
-    <!-- 图表行 -->
+    <!-- Chart Row -->
     <div class="row mb-4">
-        <!-- 销售趋势图 -->
         <div class="col-xl-8 mb-4">
             <div class="card dashboard-card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">近30天销售趋势</h5>
+                    <h5 class="mb-0">Sales Trend (Last 30 Days)</h5>
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -114,24 +112,24 @@
         </div>
     </div>
 
-    <!-- 底部行 -->
+    <!-- Bottom Section -->
     <div class="row">
-        <!-- 热门商品 -->
+        <!-- Top Products -->
         <div class="col-xl-6 mb-4">
             <div class="card dashboard-card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">热门商品</h5>
-                    <a href="{% url 'merchant:product_list' %}" class="btn btn-sm btn-outline-primary">查看全部</a>
+                    <h5 class="mb-0">Top Products</h5>
+                    <a href="{% url 'merchant:product_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>商品名称</th>
-                                    <th>销量</th>
-                                    <th>销售额</th>
-                                    <th>库存</th>
+                                    <th>Product Name</th>
+                                    <th>Sales Count</th>
+                                    <th>Total Sales</th>
+                                    <th>Stock</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -149,23 +147,23 @@
                 </div>
             </div>
         </div>
-        
-        <!-- 最近订单 -->
+
+        <!-- Recent Orders -->
         <div class="col-xl-6 mb-4">
             <div class="card dashboard-card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">最近订单</h5>
-                    <a href="{% url 'merchant:order_list' %}" class="btn btn-sm btn-outline-primary">查看全部</a>
+                    <h5 class="mb-0">Recent Orders</h5>
+                    <a href="{% url 'merchant:order_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>订单号</th>
-                                    <th>金额</th>
-                                    <th>状态</th>
-                                    <th>日期</th>
+                                    <th>Order ID</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -197,14 +195,13 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 <script>
-    // 销售趋势图
     const salesCtx = document.getElementById('salesChart').getContext('2d');
     const salesChart = new Chart(salesCtx, {
         type: 'line',
         data: {
             labels: {{ sales_labels|safe }},
             datasets: [{
-                label: '销售额 (元)',
+                label: 'Sales (CNY)',
                 data: {{ sales_data|safe }},
                 borderColor: 'rgba(75, 192, 192, 1)',
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',

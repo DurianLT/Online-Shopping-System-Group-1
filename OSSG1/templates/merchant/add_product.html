@@ -1,255 +1,307 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 
-{% block title %}添加商品{% endblock %}
+{% block title %}Add Product{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="fw-bold text-center">添加新商品</h2>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="fw-bold mb-0 text-center">Add New Product</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
 
-    <form method="post" enctype="multipart/form-data" class="mt-4">
-        {% csrf_token %}
+                        <!-- Product Information Section -->
+                        <div class="mb-4">
+                            <h4 class="fw-bold mb-3 text-primary">
+                                <i class="bi bi-box-seam me-2"></i>Product Information
+                            </h4>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ product_form.name.id_for_label }}" class="form-label">Product Name</label>
+                                    {{ product_form.name|add_class:"form-control" }}
+                                    {% if product_form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ product_form.name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ product_form.sku.id_for_label }}" class="form-label">SKU</label>
+                                    <div class="input-group">
+                                        {{ product_form.sku|add_class:"form-control" }}
+                                        <button type="button" class="btn btn-outline-secondary" id="generate-sku">
+                                            <i class="bi bi-shuffle"></i> Generate
+                                        </button>
+                                    </div>
+                                    {% if product_form.sku.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ product_form.sku.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12">
+                                    <label for="{{ product_form.description.id_for_label }}" class="form-label">Description</label>
+                                    {{ product_form.description|add_class:"form-control" }}
+                                    {% if product_form.description.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ product_form.description.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch mt-4">
+                                        {{ product_form.hidden }}
+                                        <label class="form-check-label" for="{{ product_form.hidden.id_for_label }}">
+                                            Hide Product
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch mt-4">
+                                        {{ product_form.is_physical }}
+                                        <label class="form-check-label" for="{{ product_form.is_physical.id_for_label }}">
+                                            Physical Product
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ product_form.stock_quantity.id_for_label }}" class="form-label">Stock Quantity</label>
+                                    {{ product_form.stock_quantity|add_class:"form-control" }}
+                                    {% if product_form.stock_quantity.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ product_form.stock_quantity.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- 商品信息 -->
-        <div class="card p-4 mt-4 shadow-sm">
-            <h4 class="fw-bold">商品信息</h4>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    {{ product_form.name.label_tag }}
-                    {{ product_form.name }}
-                    {% if product_form.name.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.name.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
+                        <!-- Product Categories Section -->
+                        <div class="mb-4">
+                            <h4 class="fw-bold mb-3 text-primary">
+                                <i class="bi bi-tags me-2"></i>Product Categories
+                            </h4>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Level 1 Category</label>
+                                    <div class="input-group">
+                                        <select id="id_category_level1" name="category_level1" class="form-select">
+                                            <option value="">Select Level 1</option>
+                                            {% for category in categories_level1 %}
+                                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn btn-outline-warning" id="custom-category1">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
+                                    <input type="text" id="custom_category_level1" name="custom_category_level1" class="form-control mt-2 d-none" placeholder="Enter custom category">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Level 2 Category</label>
+                                    <div class="input-group">
+                                        <select id="id_category_level2" name="category_level2" class="form-select" disabled>
+                                            <option value="">Select Level 2</option>
+                                        </select>
+                                        <button type="button" class="btn btn-outline-warning" id="custom-category2" disabled>
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
+                                    <input type="text" id="custom_category_level2" name="custom_category_level2" class="form-control mt-2 d-none" placeholder="Enter custom category">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Level 3 Category</label>
+                                    <div class="input-group">
+                                        <select id="id_category_level3" name="category_level3" class="form-select" disabled>
+                                            <option value="">Select Level 3</option>
+                                        </select>
+                                        <button type="button" class="btn btn-outline-warning" id="custom-category3" disabled>
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
+                                    <input type="text" id="custom_category_level3" name="custom_category_level3" class="form-control mt-2 d-none" placeholder="Enter custom category">
+                                </div>
+                            </div>
                         </div>
-                    {% endif %}
-                </div>
-                <div class="col-md-6">
-                    {{ product_form.sku.label_tag }}
-                    {{ product_form.sku }}
-                    <button type="button" class="btn btn-secondary btn-sm" id="generate-sku">生成 SKU</button>
-                    {% if product_form.sku.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.sku.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="col-md-12">
-                    {{ product_form.description.label_tag }}
-                    {{ product_form.description }}
-                    {% if product_form.description.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.description.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="col-md-4">
-                    {{ product_form.hidden.label_tag }}
-                    {{ product_form.hidden }}
-                    {% if product_form.hidden.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.hidden.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="col-md-4">
-                    {{ product_form.is_physical.label_tag }}
-                    {{ product_form.is_physical }}
-                    {% if product_form.is_physical.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.is_physical.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="col-md-4">
-                    {{ product_form.stock_quantity.label_tag }}
-                    {{ product_form.stock_quantity }}
-                    {% if product_form.stock_quantity.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.stock_quantity.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
 
-            <!-- 选择分类 -->
-            <h5 class="mt-4 fw-bold">选择商品分类</h5>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label>一级分类</label>
-                    <select id="id_category_level1" name="category_level1" class="form-control">
-                        <option value="">选择一级分类</option>
-                        {% for category in categories_level1 %}
-                            <option value="{{ category.id }}">{{ category.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="button" class="btn btn-warning btn-sm mt-2" id="custom-category1">自定义</button>
-                    <input type="text" id="custom_category_level1" name="custom_category_level1" class="form-control mt-2 d-none" placeholder="输入自定义分类">
-                    {% if product_form.category_level1.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.category_level1.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
+                        <!-- Recommended Tags Section -->
+                        <div class="mb-4 card border-primary" id="recommended-tags-card" style="display: none;">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-star me-2"></i>Recommended Tags
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="recommended-tags" class="d-flex flex-wrap gap-2"></div>
+                                <div id="tag-input-container" class="mt-3" style="display: none;">
+                                    <div class="input-group">
+                                        <input type="text" id="tag-input" class="form-control" placeholder="Enter tag value">
+                                        <button type="button" id="add-tag-btn" class="btn btn-primary">
+                                            <i class="bi bi-plus-lg"></i> Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    {% endif %}
-                </div>
 
-                <div class="col-md-4">
-                    <label>二级分类</label>
-                    <select id="id_category_level2" name="category_level2" class="form-control" disabled>
-                        <option value="">选择二级分类</option>
-                    </select>
-                    <button type="button" class="btn btn-warning btn-sm mt-2" id="custom-category2" disabled>自定义</button>
-                    <input type="text" id="custom_category_level2" name="custom_category_level2" class="form-control mt-2 d-none" placeholder="输入自定义分类">
-                    {% if product_form.category_level2.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.category_level2.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
+                        <!-- Added Tags Section -->
+                        <div class="mb-4 card border-success" id="added-tags-card" style="display: none;">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-check-circle me-2"></i>Added Tags
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="added-tags" class="d-flex flex-wrap gap-2"></div>
+                            </div>
                         </div>
-                    {% endif %}
-                </div>
+                        <input type="hidden" name="tags" id="tags-input">
 
-                <div class="col-md-4">
-                    <label>三级分类</label>
-                    <select id="id_category_level3" name="category_level3" class="form-control" disabled>
-                        <option value="">选择三级分类</option>
-                    </select>
-                    <button type="button" class="btn btn-warning btn-sm mt-2" id="custom-category3" disabled>自定义</button>
-                    <input type="text" id="custom_category_level3" name="custom_category_level3" class="form-control mt-2 d-none" placeholder="输入自定义分类">
-                    {% if product_form.category_level3.errors %}
-                        <div class="alert alert-danger mt-2">
-                            {% for error in product_form.category_level3.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
+                        <!-- Product Images Section -->
+                        <div class="mb-4">
+                            <h4 class="fw-bold mb-3 text-primary">
+                                <i class="bi bi-images me-2"></i>Product Images
+                            </h4>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <label class="form-label text-primary fw-bold">Main Image</label>
+                                    <input type="file" name="images" class="form-control" required>
+                                    <button type="button" class="btn btn-outline-info mt-3" id="add-image-btn">
+                                        <i class="bi bi-plus-lg me-1"></i>Add Additional Images
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    {% endif %}
+
+                        <!-- Pricing Information Section -->
+                        <div class="mb-4">
+                            <h4 class="fw-bold mb-3 text-primary">
+                                <i class="bi bi-currency-dollar me-2"></i>Pricing Information
+                            </h4>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <label for="{{ pricing_form.price.id_for_label }}" class="form-label">Price</label>
+                                    {{ pricing_form.price|add_class:"form-control" }}
+                                    {% if pricing_form.price.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ pricing_form.price.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check-circle me-2"></i>Submit Product
+                            </button>
+                            <a href="{% url 'merchant:product_list' %}" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-
-        <!-- 推荐标签 -->
-        <div class="card p-3 mt-3 shadow-sm" id="recommended-tags-card" style="display: none;">
-            <h5 class="fw-bold">推荐标签</h5>
-            <div id="recommended-tags" class="d-flex flex-wrap gap-2"></div>
-
-            <!-- 用户填写标签内容 -->
-            <div id="tag-input-container" style="display: none;">
-                <div class="d-flex gap-2 mt-3">
-                    <input type="text" id="tag-input" class="form-control" placeholder="请输入标签内容">
-                    <button type="button" id="add-tag-btn" class="btn btn-primary">添加标签</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 已添加的标签 -->
-        <div class="card p-3 mt-3 shadow-sm" id="added-tags-card" style="display: none;">
-            <h5 class="fw-bold">已添加标签</h5>
-            <div id="added-tags" class="d-flex flex-wrap gap-2"></div>
-        </div>
-
-        <!-- 隐藏字段用于提交标签 -->
-        <input type="hidden"· name="tags" id="tags-input">
-
-        <!-- 商品图片上传 -->
-        <div class="card p-4 mt-4 shadow-sm">
-            <h4 class="fw-bold">商品图片</h4>
-            <div class="mb-3" id="image-container">
-                <input type="file" name="images" class="form-control" required>
-            </div>
-            <button type="button" class="btn btn-info mt-2" id="add-image-btn">添加非主图图片</button>
-        </div>
-
-        <!-- 定价信息 -->
-        <div class="card p-4 mt-4 shadow-sm">
-            <h4 class="fw-bold">定价信息</h4>
-            <div class="mb-3">
-                {{ pricing_form.price.label_tag }} <!-- 显示价格标签 -->
-                {{ pricing_form.price }} <!-- 显示价格输入框 -->
-                {% if pricing_form.price.errors %}
-                    <div class="alert alert-danger mt-2">
-                        {% for error in pricing_form.price.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-success mt-3">提交商品</button>
-    </form>
+    </div>
 </div>
 
 
+<!-- Add Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+
+<style>
+    .form-control, .form-select, .form-floating>label {
+        transition: all 0.2s;
+    }
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        border-color: #86b7fe;
+    }
+    .card {
+        border-radius: 0.5rem;
+    }
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 0.75em;
+    }
+    .invalid-feedback {
+        font-size: 0.85rem;
+    }
+</style>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // SKU 生成
-    let skuField = document.querySelector("#id_sku");
-
+    // SKU Generation
+    const skuField = document.querySelector("#id_sku");
     function generateSKU() {
         return "SKU-" + Math.random().toString(36).substr(2, 8).toUpperCase();
     }
+    document.getElementById("generate-sku").addEventListener("click", function () {
+        skuField.value = generateSKU();
+    });
 
-    // 图片上传逻辑
-    let imageContainer = document.querySelector("#image-container");
-    let addImageBtn = document.querySelector("#add-image-btn");
+    // Image Upload Logic
+    const imageContainer = document.querySelector("#image-container");
+    const addImageBtn = document.querySelector("#add-image-btn");
 
     addImageBtn.addEventListener("click", function () {
         const wrapper = document.createElement("div");
-        wrapper.classList.add("d-flex", "align-items-center", "mt-2");
+        wrapper.classList.add("mb-3", "border-bottom", "pb-3");
+
+        const label = document.createElement("label");
+        label.classList.add("form-label", "text-muted");
+        label.textContent = "Additional Image";
+
+        const inputGroup = document.createElement("div");
+        inputGroup.classList.add("input-group");
 
         const newImageInput = document.createElement("input");
         newImageInput.type = "file";
         newImageInput.name = "images";
-        newImageInput.classList.add("form-control", "me-2");
+        newImageInput.classList.add("form-control");
 
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
-        deleteBtn.classList.add("btn", "btn-danger", "btn-sm");
-        deleteBtn.textContent = "删除";
+        deleteBtn.classList.add("btn", "btn-outline-danger");
+        deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
 
         deleteBtn.addEventListener("click", function () {
             imageContainer.removeChild(wrapper);
         });
 
-        wrapper.appendChild(newImageInput);
-        wrapper.appendChild(deleteBtn);
+        inputGroup.appendChild(newImageInput);
+        inputGroup.appendChild(deleteBtn);
+        
+        wrapper.appendChild(label);
+        wrapper.appendChild(inputGroup);
         imageContainer.appendChild(wrapper);
     });
 
-    const primaryLabel = document.createElement("span");
-    primaryLabel.classList.add("text-primary", "fw-bold", "mb-1", "d-block");
-    primaryLabel.textContent = "主图";
-    imageContainer.insertBefore(primaryLabel, imageContainer.firstChild);
+    // Category Cascade Logic
+    const level1Field = document.querySelector("#id_category_level1");
+    const level2Field = document.querySelector("#id_category_level2");
+    const level3Field = document.querySelector("#id_category_level3");
 
-    // 分类级联逻辑
-    let level1Field = document.querySelector("#id_category_level1");
-    let level2Field = document.querySelector("#id_category_level2");
-    let level3Field = document.querySelector("#id_category_level3");
+    const customCategory1 = document.querySelector("#custom-category1");
+    const customCategory2 = document.querySelector("#custom-category2");
+    const customCategory3 = document.querySelector("#custom-category3");
 
-    let customCategory1 = document.querySelector("#custom-category1");
-    let customCategory2 = document.querySelector("#custom-category2");
-    let customCategory3 = document.querySelector("#custom-category3");
-
-    let customCategoryInput1 = document.querySelector("#custom_category_level1");
-    let customCategoryInput2 = document.querySelector("#custom_category_level2");
-    let customCategoryInput3 = document.querySelector("#custom_category_level3");
+    const customInput1 = document.querySelector("#custom_category_level1");
+    const customInput2 = document.querySelector("#custom_category_level2");
+    const customInput3 = document.querySelector("#custom_category_level3");
 
     function fetchSubcategories(parentId, level, targetField, nextCustomBtn) {
         fetch(`/merchant/get_subcategories/?parent_id=${parentId}&level=${level}`)
             .then(response => response.json())
             .then(data => {
-                targetField.innerHTML = '<option value="">选择分类</option>';
+                targetField.innerHTML = '<option value="">Select Category</option>';
                 if (data.length) {
                     data.forEach(item => {
                         targetField.add(new Option(item.name, item.id));
@@ -261,8 +313,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     level1Field.addEventListener("change", function () {
-        level2Field.innerHTML = '<option value="">选择二级分类</option>';
-        level3Field.innerHTML = '<option value="">选择三级分类</option>';
+        level2Field.innerHTML = '<option value="">Select Level 2</option>';
+        level3Field.innerHTML = '<option value="">Select Level 3</option>';
         level2Field.disabled = true;
         level3Field.disabled = true;
         customCategory2.disabled = true;
@@ -271,19 +323,17 @@ document.addEventListener("DOMContentLoaded", function () {
         let selectedOption = this.options[this.selectedIndex];
         let categoryName = selectedOption.text;
 
-        // 请求子分类
         if (this.value) {
             fetchSubcategories(this.value, 2, level2Field, customCategory2);
         }
 
-        // 请求推荐标签
         if (categoryName && !selectedOption.disabled) {
             fetchRecommendedTags(categoryName);
         }
     });
 
     level2Field.addEventListener("change", function () {
-        level3Field.innerHTML = '<option value="">选择三级分类</option>';
+        level3Field.innerHTML = '<option value="">Select Level 3</option>';
         level3Field.disabled = true;
         customCategory3.disabled = true;
 
@@ -297,21 +347,19 @@ document.addEventListener("DOMContentLoaded", function () {
             level1Field.disabled = true;
             level2Field.disabled = true;
             level3Field.disabled = true;
-            customCategoryInput1.classList.remove("d-none");
-            customCategoryInput2.classList.remove("d-none");
-            customCategoryInput3.classList.remove("d-none");
+            customInput1.classList.remove("d-none");
+            customInput2.classList.remove("d-none");
+            customInput3.classList.remove("d-none");
         } else if (level === 2) {
             level2Field.disabled = true;
             level3Field.disabled = true;
-            customCategoryInput2.classList.remove("d-none");
-            customCategoryInput3.classList.remove("d-none");
+            customInput2.classList.remove("d-none");
+            customInput3.classList.remove("d-none");
         } else if (level === 3) {
             level3Field.disabled = true;
-            customCategoryInput3.classList.remove("d-none");
+            customInput3.classList.remove("d-none");
         }
         skuField.value = generateSKU();
-
-        // 隐藏推荐标签区域（自定义分类不显示推荐）
         document.querySelector("#recommended-tags-card").style.display = "none";
     }
 
@@ -327,11 +375,7 @@ document.addEventListener("DOMContentLoaded", function () {
         enableCustomCategory(3);
     });
 
-    document.querySelector("#generate-sku").addEventListener("click", function () {
-        skuField.value = generateSKU();
-    });
-
-    // 推荐标签逻辑
+    // Recommended Tags Logic
     function fetchRecommendedTags(categoryName) {
         fetch(`/merchant/get_recommended_tags/?category_name=${encodeURIComponent(categoryName)}`)
             .then(response => response.json())
@@ -344,14 +388,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     tagCard.style.display = "block";
                     data.forEach(tag => {
                         const tagElement = document.createElement("span");
-                        tagElement.classList.add("badge", "bg-primary", "text-white", "px-2", "py-1", "rounded");
-                        tagElement.textContent = tag;
+                        tagElement.classList.add("badge", "bg-primary", "text-white", "px-2", "py-1", "rounded", "cursor-pointer");
+                        tagElement.innerHTML = `<i class="bi bi-tag me-1"></i>${tag}`;
+                        tagElement.title = "Click to add this tag";
 
-                        // 点击推荐标签后输入框出现
                         tagElement.addEventListener("click", function () {
                             document.querySelector("#tag-input-container").style.display = "block";
-                            document.querySelector("#tag-input").placeholder = `${tag}：请输入内容`;
+                            document.querySelector("#tag-input").placeholder = `${tag}: Enter value`;
                             document.querySelector("#add-tag-btn").dataset.tag = tag;
+                            document.querySelector("#tag-input").focus();
                         });
 
                         tagContainer.appendChild(tagElement);
@@ -362,8 +407,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    // 点击添加标签按钮后，将标签添加到已添加标签列表
-    // 点击添加标签按钮后，将标签添加到已添加标签列表
+    // Tags Management Logic
     document.querySelector("#add-tag-btn").addEventListener("click", function () {
         const tagInput = document.querySelector("#tag-input");
         const tag = this.dataset.tag;
@@ -373,26 +417,20 @@ document.addEventListener("DOMContentLoaded", function () {
             const addedTagContainer = document.querySelector("#added-tags");
             const addedTag = document.createElement("span");
             addedTag.classList.add("badge", "bg-success", "text-white", "px-2", "py-1", "rounded", "d-flex", "align-items-center");
+            addedTag.innerHTML = `
+                <i class="bi bi-tag-fill me-1"></i>${tag}: ${tagValue}
+                <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6rem;" aria-label="Remove"></button>
+            `;
 
-            // 正确的标签内容是 `key: value`，并且不包括删除按钮的文本
-            addedTag.textContent = `${tag}: ${tagValue}`;  // 只包括 `key: value`
-
-            // 添加删除按钮
-            const deleteBtn = document.createElement("button");
-            deleteBtn.classList.add("btn", "btn-danger", "btn-sm", "ms-2");
-            deleteBtn.textContent = "删除";
+            const deleteBtn = addedTag.querySelector(".btn-close");
             deleteBtn.addEventListener("click", function () {
                 addedTagContainer.removeChild(addedTag);
-                updateTagsInput();  // 更新隐藏字段
+                updateTagsInput();
             });
 
-            addedTag.appendChild(deleteBtn);  // 删除按钮附加到标签元素中
             addedTagContainer.appendChild(addedTag);
-
-            // 更新隐藏字段
             updateTagsInput();
 
-            // 清空输入框，隐藏输入框
             tagInput.value = "";
             document.querySelector("#tag-input-container").style.display = "none";
             document.querySelector("#added-tags-card").style.display = "block";
@@ -403,18 +441,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const tags = [];
         const addedTagElements = document.querySelector("#added-tags").querySelectorAll("span");
         addedTagElements.forEach(tagElement => {
-            // 获取标签的实际内容（去掉删除按钮）
-            const tagText = tagElement.textContent.replace("删除", "").trim();
-            const tagValue = tagText.split(":")[1].trim();  // 获取 : 后面的标签值
-            const tagKey = tagText.split(":")[0].trim();  // 获取 : 前面的标签键
-            tags.push(`${tagKey}: ${tagValue}`);  // 只保留 `key: value` 内容
+            const tagText = tagElement.textContent.replace("Remove", "").trim();
+            const tagValue = tagText.split(":")[1].trim();
+            const tagKey = tagText.split(":")[0].trim();
+            tags.push(`${tagKey}: ${tagValue}`);
         });
-        document.querySelector("#tags-input").value = tags.join(",");  // 将标签数据转换为字符串并赋值给隐藏字段
+        document.querySelector("#tags-input").value = tags.join(",");
     }
-
 });
-
 </script>
-
-
 {% endblock %}
