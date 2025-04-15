@@ -222,44 +222,70 @@ class EditProductView(MerchantRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["product_form"] = ProductForm(instance=self.get_object())  # 使用 get_object()
-        context["pricing_form"] = PricingForm(instance=self.get_object().pricing)
+        product = self.get_object()
+        context["product"] = product
+        context["product_form"] = ProductForm(instance=product)
+        context["pricing_form"] = PricingForm(instance=product.pricing)
+        context["categories_level1"] = CategoryLevel1.objects.all()
         return context
 
     def post(self, request, *args, **kwargs):
-        # 確保 self.object 正確初始化
         self.object = self.get_object()
+        form = self.get_form()
+        pricing_form = PricingForm(request.POST, instance=self.object.pricing)
 
-        # 處理刪除圖片請求
+        # 图片删除请求
         delete_image_id = request.POST.get("delete_image")
         if delete_image_id:
             try:
-                image_instance = ProductImage.objects.get(
-                    id=delete_image_id,
-                    product=self.object,
-                    is_primary=False
-                )
-                image_instance.delete()
-                return JsonResponse({"status": "success", "message": "圖片刪除成功"})
+                image = ProductImage.objects.get(id=delete_image_id, product=self.object, is_primary=False)
+                image.delete()
+                return JsonResponse({"status": "success", "message": "图片已删除"})
             except ProductImage.DoesNotExist:
-                return JsonResponse({"status": "error", "message": "圖片不存在或無權限刪除"}, status=404)
+                return JsonResponse({"status": "error", "message": "图片不存在"}, status=404)
 
-        # 替換主圖
-        primary_image = request.FILES.get("replace_primary_image")
-        if primary_image:
-            primary_image_instance = self.object.images.filter(is_primary=True).first()
-            if primary_image_instance:
-                primary_image_instance.image = primary_image
-                primary_image_instance.save()
+        if form.is_valid() and pricing_form.is_valid():
+            product = form.save()
+            pricing_form.save()
 
-        # 添加非主圖
-        images = request.FILES.getlist("images")
-        for image in images:
-            ProductImage.objects.create(product=self.object, image=image)
+            # 主图替换
+            new_primary = request.FILES.get("replace_primary_image")
+            if new_primary:
+                primary = product.images.filter(is_primary=True).first()
+                if primary:
+                    primary.image = new_primary
+                    primary.save()
 
-        messages.success(request, "商品信息已更新！")
-        return super().post(request, *args, **kwargs)
+            # 新图片
+            for image in request.FILES.getlist("images"):
+                ProductImage.objects.create(product=product, image=image)
 
+            # 删除标签
+            delete_tags = request.POST.get("delete_tags", "")
+            for tag_id in delete_tags.split(","):
+                if tag_id.strip():
+                    ProductAttribute.objects.filter(id=tag_id.strip(), product=product).delete()
+
+            # 添加新标签
+            tags_str = request.POST.get("tags", "")
+            for tag in tags_str.split(","):
+                if ":" in tag:
+                    key, value = tag.split(":", 1)
+                    ProductAttribute.objects.create(product=product, key=key.strip(), value=value.strip())
+
+            messages.success(request, "商品信息已更新！")
+            return redirect(self.success_url)
+
+
+        else:
+            # ✅ 打印表单错误
+            print("ProductForm Errors:", form.errors)
+            print("PricingForm Errors:", pricing_form.errors)
+
+        context = self.get_context_data()
+        context["product_form"] = form
+        context["pricing_form"] = pricing_form
+        return self.render_to_response(context)
 
 
 
