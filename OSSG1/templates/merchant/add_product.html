@@ -170,7 +170,9 @@
                             <div class="card border-0 shadow-sm">
                                 <div class="card-body">
                                     <label class="form-label text-primary fw-bold">Main Image</label>
-                                    <input type="file" name="images" class="form-control" required>
+                                    <div class="mb-3" id="image-container">
+                                        <input type="file" name="images" class="form-control" required>
+                                    </div>
                                     <button type="button" class="btn btn-outline-info mt-3" id="add-image-btn">
                                         <i class="bi bi-plus-lg me-1"></i>Add Additional Images
                                     </button>
@@ -412,30 +414,36 @@ document.addEventListener("DOMContentLoaded", function () {
         const tagInput = document.querySelector("#tag-input");
         const tag = this.dataset.tag;
         const tagValue = tagInput.value.trim();
-
+    
         if (tagValue) {
             const addedTagContainer = document.querySelector("#added-tags");
+            if (!addedTagContainer) {
+                console.error("#added-tags 容器不存在");
+                return;
+            }
+    
             const addedTag = document.createElement("span");
             addedTag.classList.add("badge", "bg-success", "text-white", "px-2", "py-1", "rounded", "d-flex", "align-items-center");
             addedTag.innerHTML = `
                 <i class="bi bi-tag-fill me-1"></i>${tag}: ${tagValue}
                 <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6rem;" aria-label="Remove"></button>
             `;
-
+    
             const deleteBtn = addedTag.querySelector(".btn-close");
             deleteBtn.addEventListener("click", function () {
                 addedTagContainer.removeChild(addedTag);
                 updateTagsInput();
             });
-
+    
             addedTagContainer.appendChild(addedTag);
             updateTagsInput();
-
+    
             tagInput.value = "";
             document.querySelector("#tag-input-container").style.display = "none";
             document.querySelector("#added-tags-card").style.display = "block";
         }
     });
+    
 
     function updateTagsInput() {
         const tags = [];
