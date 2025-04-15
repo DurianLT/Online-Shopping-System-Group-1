@@ -28,6 +28,10 @@ from django.utils.timezone import now, timedelta
 from django.db.models import Sum, Count, Avg
 from users.models import Review, OrderItem
 from django.db.models import F
+from django.db.models.functions import TruncDate
+from django.utils.timezone import now, localtime
+from collections import defaultdict
+
 
 class MerchantDashboardView(MerchantRequiredMixin, ListView):
     """ 商家管理首页 """
@@ -45,31 +49,41 @@ class MerchantDashboardView(MerchantRequiredMixin, ListView):
         orders = Order.objects.filter(seller=user)
         context["orders"] = orders
 
-        # 累计销售额（仅统计已发货）
+        # 累计销售额（已完成）
         context["total_sales"] = orders.filter(status="Completed").aggregate(
             total=Sum("total_amount")
         )["total"] or 0
 
-        # 待处理订单数（已付款未发货）
+        # 待处理订单（已付款未发货）
         context["pending_orders"] = orders.filter(status="Paid").count()
 
         # 销售趋势（近30天）
-        today = now().date()
-        last_30_days = [today - timedelta(days=i) for i in range(29, -1, -1)]
-        sales_labels = [d.strftime("%m-%d") for d in last_30_days]
-        sales_data = []
+        today = localtime(now()).date()
+        start_date = today - timedelta(days=29)
+        date_range = [start_date + timedelta(days=i) for i in range(30)]
+        sales_labels = [d.strftime("%m-%d") for d in date_range]
 
-        for date in last_30_days:
-            daily_total = orders.filter(
-                updated_at__date=date, status="Completed"
-            ).aggregate(sum=Sum("total_amount"))["sum"] or 0
-            sales_data.append(float(daily_total))
+        # 初始化每日销售额字典
+        sales_dict = defaultdict(float)
+        # 过滤已完成订单
+        orders = Order.objects.filter(seller=user, status="Completed")
+        filtered_orders = [
+            order for order in orders
+            if localtime(order.created_at).date() >= start_date
+        ]
+        # 手动汇总每日销售额
+        for order in filtered_orders:
+            order_date = localtime(order.created_at).date()
+            if start_date <= order_date <= today:
+                sales_dict[order_date] += float(order.total_amount)
+
+        # 构建销售数据列表
+        sales_data = [sales_dict.get(date, 0.0) for date in date_range]
 
         context["sales_labels"] = sales_labels
         context["sales_data"] = sales_data
 
-
-        # 热门商品（销量最多前5）
+        # 热门商品（销量前5）
         top_products = (
             Product.objects.filter(user=user)
             .annotate(
@@ -80,7 +94,7 @@ class MerchantDashboardView(MerchantRequiredMixin, ListView):
         )
         context["top_products"] = top_products
 
-        # 最近订单（最近5条）
+        # 最近订单（最新5条）
         context["recent_orders"] = orders.order_by("-created_at")[:5]
 
         return context
