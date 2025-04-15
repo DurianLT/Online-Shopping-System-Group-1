@@ -39,7 +39,7 @@ class MerchantDashboardView(MerchantRequiredMixin, ListView):
     context_object_name = "products"
 
     def get_queryset(self):
-        return Product.objects.filter(user=self.request.user)
+        return Product.objects.filter(user=self.request.user, is_deleted=False)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
