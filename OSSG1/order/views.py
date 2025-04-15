@@ -188,18 +188,42 @@ def order_single_product(request, product_id):
         messages.success(request, "订单创建成功！")
         return redirect("order_list")
 
+from django.core.paginator import Paginator
+from django.shortcuts import render
 
 @login_required
 def order_list(request):
+    # 获取筛选参数
     status_filter = request.GET.get("status", "")
-    orders = Order.objects.filter(user=request.user).order_by("-created_at")
-
+    page_number = request.GET.get('page', 1)
+    
+    # 基础查询
+    orders = Order.objects.filter(user=request.user).select_related('seller').order_by("-created_at")
+    
+    # 状态筛选
     if status_filter:
         orders = orders.filter(status=status_filter)
-
+    
+    # 分页处理 - 每页10条记录
+    paginator = Paginator(orders, 10)
+    page_obj = paginator.get_page(page_number)
+    
+    # 状态选项（用于前端显示当前筛选状态）
+    status_choices = {
+        '': '全部',
+        'Pending': '待支付',
+        'Paid': '已支付',
+        'Shipped': '已发货',
+        'Completed': '已完成',
+        'Cancelled': '已取消',
+    }
+    
     return render(request, "order/order_list.html", {
-        "orders": orders,
-        "status_filter": status_filter
+        "orders": page_obj.object_list,
+        "page_obj": page_obj,
+        "status_filter": status_filter,
+        "status_choices": status_choices,
+        "is_paginated": page_obj.has_other_pages(),
     })
 
 
