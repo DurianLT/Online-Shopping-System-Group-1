@@ -16,29 +16,70 @@
                 <div class="col-md-6">
                     {{ product_form.name.label_tag }}
                     {{ product_form.name }}
+                    {% if product_form.name.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="col-md-6">
                     {{ product_form.sku.label_tag }}
                     {{ product_form.sku }}
                     <button type="button" class="btn btn-secondary btn-sm" id="generate-sku">生成 SKU</button>
+                    {% if product_form.sku.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.sku.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="col-md-12">
                     {{ product_form.description.label_tag }}
                     {{ product_form.description }}
+                    {% if product_form.description.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.description.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="col-md-4">
                     {{ product_form.hidden.label_tag }}
                     {{ product_form.hidden }}
+                    {% if product_form.hidden.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.hidden.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="col-md-4">
                     {{ product_form.is_physical.label_tag }}
                     {{ product_form.is_physical }}
+                    {% if product_form.is_physical.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.is_physical.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="col-md-4">
                     {{ product_form.stock_quantity.label_tag }}
                     {{ product_form.stock_quantity }}
+                    {% if product_form.stock_quantity.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.stock_quantity.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-
             </div>
 
             <!-- 选择分类 -->
@@ -54,6 +95,13 @@
                     </select>
                     <button type="button" class="btn btn-warning btn-sm mt-2" id="custom-category1">自定义</button>
                     <input type="text" id="custom_category_level1" name="custom_category_level1" class="form-control mt-2 d-none" placeholder="输入自定义分类">
+                    {% if product_form.category_level1.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.category_level1.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="col-md-4">
@@ -63,6 +111,13 @@
                     </select>
                     <button type="button" class="btn btn-warning btn-sm mt-2" id="custom-category2" disabled>自定义</button>
                     <input type="text" id="custom_category_level2" name="custom_category_level2" class="form-control mt-2 d-none" placeholder="输入自定义分类">
+                    {% if product_form.category_level2.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.category_level2.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="col-md-4">
@@ -72,6 +127,13 @@
                     </select>
                     <button type="button" class="btn btn-warning btn-sm mt-2" id="custom-category3" disabled>自定义</button>
                     <input type="text" id="custom_category_level3" name="custom_category_level3" class="form-control mt-2 d-none" placeholder="输入自定义分类">
+                    {% if product_form.category_level3.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {% for error in product_form.category_level3.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -112,7 +174,15 @@
         <div class="card p-4 mt-4 shadow-sm">
             <h4 class="fw-bold">定价信息</h4>
             <div class="mb-3">
-                {{ pricing_form.as_p }}
+                {{ pricing_form.price.label_tag }} <!-- 显示价格标签 -->
+                {{ pricing_form.price }} <!-- 显示价格输入框 -->
+                {% if pricing_form.price.errors %}
+                    <div class="alert alert-danger mt-2">
+                        {% for error in pricing_form.price.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
         </div>
 

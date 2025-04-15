@@ -105,6 +105,10 @@ class ProductForm(forms.ModelForm):
                     )
                 cleaned_data["category_level3"] = category3
 
+        # 确保三级分类填写
+        if not cleaned_data.get("category_level3"):
+            self.add_error("category_level3", "分类不能为空")
+
         sku = cleaned_data.get("sku")
 
         # 检查是否已存在相同的 SKU（排除当前对象本身，用于编辑时）
