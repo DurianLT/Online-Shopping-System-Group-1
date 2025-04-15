@@ -23,6 +23,7 @@
                 <th>名称</th>
                 <th>SKU</th>
                 <th>分类</th>
+                <th>标签</th>
                 <th>价格</th>
                 <th>操作</th>
             </tr>
@@ -33,11 +34,29 @@
                 <td>{{ product.id }}</td>
                 <td>{{ product.name }}</td>
                 <td>{{ product.sku }}</td>
-                <td>{{ product.category.name }}</td>
+                <td>
+                    {% if product.category_level1 %}
+                        <a href="{% url 'category_detail' product.category_level1.id %}">{{ product.category_level1.name }}</a>
+                    {% endif %}
+                    {% if product.category_level2 %} >
+                        <a href="{% url 'category_detail' product.category_level2.id %}">{{ product.category_level2.name }}</a>
+                    {% endif %}
+                    {% if product.category_level3 %} >
+                        <a href="{% url 'category_detail' product.category_level3.id %}">{{ product.category_level3.name }}</a>
+                    {% endif %}
+                </td>
+                <td>
+                    {% for attribute in product.attributes.all %}
+                        <li><strong>{{ attribute.key }}:</strong> {{ attribute.value }}</li>
+                    {% empty %}
+                        <li class="text-muted">No product attributes</li>
+                    {% endfor %}
+                </td>
                 <td>¥{{ product.pricing.price }}</td>
                 <td>
                     <a href="{% url 'merchant:edit_product' product.id %}" class="btn btn-sm btn-warning">编辑</a>
                     <a href="{% url 'merchant:delete_product' product.id %}" class="btn btn-sm btn-danger">删除</a>
+                    <a href="{% url 'merchant:mark_out_of_stock' product.id %}" class="btn btn-sm btn-secondary">缺货</a>
                 </td>
             </tr>
             {% empty %}

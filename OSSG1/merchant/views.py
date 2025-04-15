@@ -328,3 +328,17 @@ def reject_refund(request, order_id):
         messages.error(request, "当前订单状态无法拒绝退款。")
 
     return redirect('merchant:order_detail', order_id=order.id)
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+
+
+def mark_out_of_stock(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    # 设置库存数量为 0
+    product.stock_quantity = 0
+    product.save()
+
+    # 重定向到商品管理页面
+    return redirect('merchant:product_list')  # 请根据实际的 URL 名称更新

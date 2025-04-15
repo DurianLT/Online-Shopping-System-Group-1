@@ -2,7 +2,7 @@ from django.urls import path
 from merchant.views import (
     MerchantDashboardView, ProductListView, AddProductView, GetSubcategoriesView,
     EditProductView, DeleteProductView, OrderListView, OrderDetailView, ShipOrderView, approve_refund, reject_refund,
-    GetRecommendedTagsView
+    GetRecommendedTagsView, mark_out_of_stock
 )
 
 app_name = "merchant"
@@ -20,5 +20,6 @@ urlpatterns = [
     path('order/<int:order_id>/approve_refund/', approve_refund, name='approve_refund'),
     path('order/<int:order_id>/reject_refund/', reject_refund, name='reject_refund'),
     path('get_recommended_tags/', GetRecommendedTagsView.as_view(), name='get_recommended_tags'),
+    path('product/<int:product_id>/mark_out_of_stock/', mark_out_of_stock, name='mark_out_of_stock'),
 
 ]
