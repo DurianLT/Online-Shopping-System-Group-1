@@ -15,7 +15,10 @@ class ProductListView(ListView):
     paginate_by = 8
 
     def get_queryset(self):
-        queryset = Product.objects.all().filter(hidden=False, is_deleted=False, stock_quantity__gt=0).order_by('created_at')
+        queryset = Product.objects.all().filter(
+            hidden=False, is_deleted=False, stock_quantity__gt=0
+        ).order_by('created_at').prefetch_related('attributes')  # 预加载 attributes
+
         level3_id = self.kwargs.get('level3_id')
         level2_id = self.kwargs.get('level2_id')
         level1_id = self.kwargs.get('level1_id')
@@ -31,10 +34,8 @@ class ProductListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # 预加载所有分类，减少数据库查询次数
         context['category_level1_list'] = CategoryLevel1.objects.prefetch_related('subcategories__subcategories')
         return context
-
 
 
 
@@ -191,48 +192,69 @@ from django.core.paginator import Paginator
 from django.views.generic import ListView
 from .models import Product, Pricing
 
+from django.views.generic.list import ListView
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from .models import Product  # 你根据实际路径替换
+from django.db.models import Prefetch
+
 class ProductListApiView(ListView):
     model = Product
     context_object_name = 'products'
 
     def get(self, request, *args, **kwargs):
         page_number = request.GET.get('page', 1)
-        # 添加排序条件，按创建时间排序
-        products = Product.objects.all().filter(hidden=False, is_deleted=False, stock_quantity__gt=0).order_by('created_at')  # 或者按其他字段排序
+        products_per_page = 8
 
-        paginator = Paginator(products, 8)  # 每页 8 个商品
+        # 获取所有符合条件的商品
+        products = Product.objects.filter(
+            hidden=False, is_deleted=False, stock_quantity__gt=0
+        ).order_by('created_at').prefetch_related(
+            'attributes', 'images', 'pricing'
+        )
+
+        # 根据分类筛选（与 ProductListView 保持一致）
+        level3_id = self.kwargs.get('level3_id')
+        level2_id = self.kwargs.get('level2_id')
+        level1_id = self.kwargs.get('level1_id')
+
+        if level3_id:
+            products = products.filter(category_level3_id=level3_id)
+        elif level2_id:
+            products = products.filter(category_level2_id=level2_id)
+        elif level1_id:
+            products = products.filter(category_level1_id=level1_id)
+
+        paginator = Paginator(products, products_per_page)
         page_obj = paginator.get_page(page_number)
 
         products_data = []
         for product in page_obj:
-            # 获取商品的定价信息
-            try:
-                pricing = product.pricing  # 尝试获取关联的定价信息
-                price = pricing.price
-                discount = pricing.discount
-                discount_start_date = pricing.discount_start_date
-                discount_end_date = pricing.discount_end_date
-            except Pricing.DoesNotExist:
-                price = 'N/A'
-                discount = 'N/A'
-                discount_start_date = None
-                discount_end_date = None
+            attributes = [{
+                'key': attr.key,
+                'value': attr.value
+            } for attr in product.attributes.all()]
+
+            pricing = getattr(product, 'pricing', None)
+            price = pricing.price if pricing else 'N/A'
+            discount = pricing.discount if pricing else None
 
             products_data.append({
                 'id': product.id,
                 'name': product.name,
-                'image_url': product.images.first().image.url if product.images.first() else '',  # 图片链接
+                'image_url': product.images.first().image.url if product.images.exists() else '',
                 'description': product.description,
-                'price': price,  # 处理定价缺失
-                'discount': discount,  # 处理折扣缺失
-                'discount_start_date': discount_start_date,  # 折扣开始日期
-                'discount_end_date': discount_end_date,  # 折扣结束日期
+                'attributes': attributes,
+                'price': price,
+                'discount': discount,
             })
 
         return JsonResponse({
-            'products': products_data,
-            'total_products': products.count()
+            'total_products': paginator.count,
+            'products': products_data
         })
+
+
 
 # views.py
 from django.views.generic.edit import CreateView, UpdateView, DeleteView

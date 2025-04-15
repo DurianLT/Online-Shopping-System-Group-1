@@ -140,6 +140,16 @@
             }
         }
 
+        .product-attribute-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #212529bf;
+            font-size: 12px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
     </style>
 {% endblock %}
 
@@ -227,34 +237,45 @@
     </div>
 </div>
 
-    <!-- 商品列表 -->
-    <div class="container">
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4" id="product-list">
-            {% for product in products %}
-                <div class="col product-item">
-                    <div class="card h-100">
-                        <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
-                            <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                            <div class="card-body">
-                                <h5 class="card-title text-dark">{{ product.name }}</h5>
-                                <p class="card-text text-muted">{{ product.description|slice:":50" }}...</p>
-                                <p class="text-danger fw-bold">
-                                    {% if product.pricing.discount %}
-                                        ¥{{ product.pricing.price }} <del class="text-muted">¥{{ product.pricing.discount }}</del>
-                                    {% else %}
-                                        ¥{{ product.pricing.price }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+<!-- 商品列表 -->
+<div class="container">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4" id="product-list">
+        {% for product in products %}
+            <div class="col product-item">
+                <div class="card h-100">
+                    <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
+                        <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|slice:":50" }}...</p>
 
-        <div id="loading" style="display:none;">Loading...</div>
-        <div id="end-message" style="display:none;">End QAQ~</div>
+                            <!-- 显示属性 -->
+                            <div class="product-attributes mb-2">
+                                {% for attr in product.attributes.all %}
+                                    <span class="product-attribute-tag attr-{{ attr.key|slugify }}">{{ attr.key }}: {{ attr.value }}</span>
+                                {% empty %}
+                                    <span class="product-attribute-tag">No attributes available.</span>
+                                {% endfor %}
+                            </div>
+
+                            <p class="text-danger fw-bold">
+                                {% if product.pricing.discount %}
+                                    ¥{{ product.pricing.price }} <del class="text-muted">¥{{ product.pricing.discount }}</del>
+                                {% else %}
+                                    ¥{{ product.pricing.price }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
     </div>
+</div>
+
+    <div id="loading" style="display:none;">Loading...</div>
+    <div id="end-message" style="display:none;">End QAQ~</div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -296,27 +317,27 @@ document.addEventListener('DOMContentLoaded', function () {
     let totalPages = null;
     let loading = false;
     let allLoaded = false;
-
+    
     function loadMoreProducts() {
         if (loading || allLoaded) return;
-
+    
         loading = true;
         document.getElementById('loading').style.display = 'block';
-
+    
         fetch(`/api/products/?page=${currentPage + 1}`)
             .then(response => response.json())
             .then(data => {
                 const productList = document.getElementById('product-list');
-
+    
                 if (totalPages === null) {
                     totalPages = Math.ceil(data.total_products / 8);
                 }
-
+    
                 const products = data.products;
-
+    
                 if (products.length > 0) {
                     currentPage++;
-
+    
                     products.forEach(product => {
                         const productHTML = `
                             <div class="col product-item">
@@ -326,6 +347,25 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <div class="card-body">
                                             <h5 class="card-title text-dark">${product.name}</h5>
                                             <p class="card-text text-muted">${product.description.slice(0, 50)}...</p>
+
+                                            <div class="product-attributes mb-2" 
+                                                    style="
+                                                        display: inline-block;
+                                                        padding: 2px 6px;
+                                                        border-radius: 4px;
+                                                        color: #000000;
+                                                        font-size: 12px;
+                                                        margin-right: 4px;
+                                                        margin-bottom: 4px;0">
+                                                ${
+                                                    product.attributes && product.attributes.length > 0
+                                                    ? product.attributes.map(attr =>
+                                                        `<span class="product-attribute-tag attr-${attr.key.toLowerCase()}">${attr.key}: ${attr.value}</span>`
+                                                    ).join('')
+                                                    : '<span class="text-muted">No attributes available.</span>'
+                                                }
+                                            </div>
+
                                             <p class="text-danger fw-bold">
                                                 ${product.discount 
                                                     ? `¥${product.price} <del class="text-muted">¥${product.discount}</del>` 
@@ -338,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         `;
                         productList.insertAdjacentHTML('beforeend', productHTML);
                     });
-
+    
                     if (currentPage >= totalPages) {
                         allLoaded = true;
                         document.getElementById('end-message').style.display = 'block';
@@ -356,11 +396,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('loading').style.display = 'none';
             });
     }
-
+    
     document.addEventListener("DOMContentLoaded", () => {
         loadMoreProducts();
     });
-
+    
+    // 监听滚动事件，判断是否需要加载更多
     window.addEventListener('scroll', function () {
         if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 10)) {
             loadMoreProducts();
