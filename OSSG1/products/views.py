@@ -198,6 +198,11 @@ from django.core.paginator import Paginator
 from .models import Product  # 你根据实际路径替换
 from django.db.models import Prefetch
 
+from django.http import JsonResponse
+from django.views.generic import ListView
+from django.core.paginator import Paginator
+from .models import Product
+
 class ProductListApiView(ListView):
     model = Product
     context_object_name = 'products'
@@ -211,9 +216,11 @@ class ProductListApiView(ListView):
             hidden=False, is_deleted=False, stock_quantity__gt=0
         ).order_by('created_at').prefetch_related(
             'attributes', 'images', 'pricing'
+        ).select_related(
+            'category_level1', 'category_level2', 'category_level3'
         )
 
-        # 根据分类筛选（与 ProductListView 保持一致）
+        # 根据分类筛选
         level3_id = self.kwargs.get('level3_id')
         level2_id = self.kwargs.get('level2_id')
         level1_id = self.kwargs.get('level1_id')
@@ -239,6 +246,22 @@ class ProductListApiView(ListView):
             price = pricing.price if pricing else 'N/A'
             discount = pricing.discount if pricing else None
 
+            # 分类信息（需要为 JS 模板准备）
+            category_level1 = {
+                'id': product.category_level1.id,
+                'name': product.category_level1.name
+            } if product.category_level1 else None
+
+            category_level2 = {
+                'id': product.category_level2.id,
+                'name': product.category_level2.name
+            } if product.category_level2 else None
+
+            category_level3 = {
+                'id': product.category_level3.id,
+                'name': product.category_level3.name
+            } if product.category_level3 else None
+
             products_data.append({
                 'id': product.id,
                 'name': product.name,
@@ -247,12 +270,16 @@ class ProductListApiView(ListView):
                 'attributes': attributes,
                 'price': price,
                 'discount': discount,
+                'category_level1': category_level1,
+                'category_level2': category_level2,
+                'category_level3': category_level3,
             })
 
         return JsonResponse({
             'total_products': paginator.count,
             'products': products_data
         })
+
 
 
 
