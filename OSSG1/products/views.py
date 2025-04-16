@@ -141,7 +141,14 @@ class ProductSearchView(ListView):
         if query:
             # 使用 Q 查询来处理多个条件，忽略大小写进行模糊匹配
             return Product.objects.filter(
-                Q(hidden=False, is_deleted=False, stock_quantity__gt=0) & (Q(name__icontains=query) | Q(description__icontains=query))
+                Q(hidden=False, is_deleted=False, stock_quantity__gt=0) 
+                & (Q(name__icontains=query) 
+                | Q(description__icontains=query) 
+                | Q(category_level1__name__icontains=query)
+                | Q(category_level2__name__icontains=query)
+                | Q(category_level3__name__icontains=query)
+                | Q(attributes__key__icontains=query)
+                | Q(attributes__value__icontains=query))
             )
         else:
             return Product.objects.filter(hidden=False, is_deleted=False, stock_quantity__gt=0)  # 如果没有输入搜索条件，则返回所有商品
