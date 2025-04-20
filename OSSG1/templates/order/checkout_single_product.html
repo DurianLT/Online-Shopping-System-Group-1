@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
-{% block title %}确认订单{% endblock %}
+{% block title %}Confirm the order{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="fw-bold">确认订单</h2>
+    <h2 class="fw-bold">Confirm the order</h2>
 
-    <!-- 选择收货地址 -->
+    <!-- Select the shipping address -->
     <div class="card p-4 mt-4 shadow-sm">
-        <h4 class="fw-bold">选择收货地址</h4>
+        <h4 class="fw-bold">Select the shipping address</h4>
         <form method="post" action="{% url 'order_single_product' product.id %}">
             {% csrf_token %}
             <input type="hidden" name="quantity" value="{{ quantity }}">
@@ -22,32 +22,32 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <p class="text-muted">你还没有添加地址</p>
-                <a href="{% url 'add_address' %}" class="btn btn-primary">添加地址</a>
+                <p class="text-muted">You haven't added an address yet</p>
+                <a href="{% url 'add_address' %}" class="btn btn-primary">Add an address</a>
             {% endif %}
             
             <button type="submit" class="btn btn-success mt-4">提交订单</button>
         </form>
     </div>
 
-    <!-- 订单商品信息 -->
+    <!-- Order item information -->
     <div class="card p-4 mt-4 shadow-sm">
-        <h4 class="fw-bold">商品信息</h4>
+        <h4 class="fw-bold">Product information</h4>
         <table class="table">
             <tr>
-                <td>商品</td>
+                <td>commodity</td>
                 <td>{{ product.name }}</td>
             </tr>
             <tr>
-                <td>单价</td>
+                <td>unit price</td>
                 <td>¥{{ price }}</td>
             </tr>
             <tr>
-                <td>数量</td>
+                <td>quantity</td>
                 <td>{{ quantity }}</td>
             </tr>
             <tr>
-                <td>总价</td>
+                <td>total price</td>
                 <td>¥{{ total_price }}</td>
             </tr>
         </table>
