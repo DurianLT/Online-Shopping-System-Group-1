@@ -133,26 +133,27 @@ from .models import Product
 
 class ProductSearchView(ListView):
     model = Product
-    template_name = 'products/search_list.html'  # 你可以根据需求更新模板路径
+    template_name = 'products/search_list.html'
     context_object_name = 'products'
     paginate_by = 8
 
     def get_queryset(self):
-        query = self.request.GET.get('q', '')  # 获取搜索关键词
+        query = self.request.GET.get('q', '')
+        base_filter = Q(hidden=False, is_deleted=False, stock_quantity__gt=0)
+
         if query:
-            # 使用 Q 查询来处理多个条件，忽略大小写进行模糊匹配
-            return Product.objects.filter(
-                Q(hidden=False, is_deleted=False, stock_quantity__gt=0) 
-                & (Q(name__icontains=query) 
-                | Q(description__icontains=query) 
-                | Q(category_level1__name__icontains=query)
-                | Q(category_level2__name__icontains=query)
-                | Q(category_level3__name__icontains=query)
-                | Q(attributes__key__icontains=query)
-                | Q(attributes__value__icontains=query))
+            search_filter = (
+                Q(name__icontains=query) |
+                Q(description__icontains=query) |
+                Q(category_level1__name__icontains=query) |
+                Q(category_level2__name__icontains=query) |
+                Q(category_level3__name__icontains=query) |
+                Q(attributes__key__icontains=query) |
+                Q(attributes__value__icontains=query)
             )
+            return Product.objects.filter(base_filter & search_filter).distinct()
         else:
-            return Product.objects.filter(hidden=False, is_deleted=False, stock_quantity__gt=0)  # 如果没有输入搜索条件，则返回所有商品
+            return Product.objects.filter(base_filter)
 
 from .models import CategoryLevel1, CategoryLevel2, CategoryLevel3
 
