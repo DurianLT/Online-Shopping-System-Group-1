@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}商品列表{% endblock %}
+{% block title %}Products list{% endblock %}
 
 {% block extra_head %}
 
@@ -41,7 +41,7 @@
 
 {% block content %}
     
-    <h1 class="fw-bold mt-5">搜索结果</h1>
+    <h1 class="fw-bold mt-5">Search Results</h1>
     
     {% if products %}
         <!-- 商品列表 -->
@@ -102,7 +102,7 @@
     <div id="loading" style="display:none;">Loading...</div>
     <div id="end-message" style="display:none;">End QAQ~</div>
     {% else %}
-        <p>没有搜到符合条件的商品</p>
+        <p>No matching products found</p>
     {% endif %}
 {% endblock %}
 {% block extra_js %}
