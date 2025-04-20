@@ -7,11 +7,8 @@ class ReviewForm(forms.ModelForm):
         model = Review
         fields = ['rating', 'comment']
         widgets = {
-            'rating': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': 1,
-                'max': 5,
-                'placeholder': '请输入评分（1-5）'
+            'rating': forms.HiddenInput(attrs={
+                'id': 'id_rating'  # 供前端 JavaScript 设置值用
             }),
             'comment': forms.Textarea(attrs={
                 'class': 'form-control',
