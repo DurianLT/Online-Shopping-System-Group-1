@@ -40,17 +40,21 @@ class CartListView(LoginRequiredMixin, ListView):
         return Cart.objects.filter(user=self.request.user)
 
     def get_context_data(self, **kwargs):
-        # 获取购物车条目
         context = super().get_context_data(**kwargs)
+        cart_items = context['cart_items']
 
         # 计算总价
-        total_price = sum(
-            item.product.pricing.discount * item.quantity if item.product.pricing.discount else item.product.pricing.price * item.quantity
-            for item in context['cart_items']
-        )
+        total_price = 0
+        total_quantity = 0
 
-        # 将总价传递给模板
+        for item in cart_items:
+            # 使用折扣价，如果存在
+            price = item.product.pricing.discount if item.product.pricing.discount else item.product.pricing.price
+            total_price += price * item.quantity
+            total_quantity += item.quantity
+
         context['total_price'] = total_price
+        context['total_quantity'] = total_quantity
         return context
 
 
