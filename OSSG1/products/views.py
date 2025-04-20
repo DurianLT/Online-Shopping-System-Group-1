@@ -135,6 +135,7 @@ class ProductSearchView(ListView):
     model = Product
     template_name = 'products/search_list.html'  # 你可以根据需求更新模板路径
     context_object_name = 'products'
+    paginate_by = 8
 
     def get_queryset(self):
         query = self.request.GET.get('q', '')  # 获取搜索关键词
@@ -336,3 +337,71 @@ class ReviewDeleteView(DeleteView):
     def get_success_url(self):
         return reverse('product-detail', kwargs={'pk': self.object.order_item.product.pk})
 
+from django.views import View
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.db.models import Q
+from .models import Product
+
+class ProductSearchApiView(View):
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('q', '')
+        page_number = request.GET.get('page', 1)
+        products_per_page = 8
+
+        # 基础过滤
+        products = Product.objects.filter(hidden=False, is_deleted=False, stock_quantity__gt=0)
+
+        # 搜索过滤
+        if query:
+            products = products.filter(
+                Q(name__icontains=query) |
+                Q(description__icontains=query) |
+                Q(category_level1__name__icontains=query) |
+                Q(category_level2__name__icontains=query) |
+                Q(category_level3__name__icontains=query) |
+                Q(attributes__key__icontains=query) |
+                Q(attributes__value__icontains=query)
+            )
+
+        # 去重（因为 attributes 多对多可能导致重复）
+        products = products.distinct()
+
+        # 优化查询
+        products = products.order_by('created_at').prefetch_related(
+            'attributes', 'images', 'pricing'
+        ).select_related(
+            'category_level1', 'category_level2', 'category_level3'
+        )
+
+        paginator = Paginator(products, products_per_page)
+        page_obj = paginator.get_page(page_number)
+
+        products_data = []
+        for product in page_obj:
+            attributes = [{'key': attr.key, 'value': attr.value} for attr in product.attributes.all()]
+            pricing = getattr(product, 'pricing', None)
+            price = pricing.price if pricing else 'N/A'
+            discount = pricing.discount if pricing else None
+
+            category_level1 = {'id': product.category_level1.id, 'name': product.category_level1.name} if product.category_level1 else None
+            category_level2 = {'id': product.category_level2.id, 'name': product.category_level2.name} if product.category_level2 else None
+            category_level3 = {'id': product.category_level3.id, 'name': product.category_level3.name} if product.category_level3 else None
+
+            products_data.append({
+                'id': product.id,
+                'name': product.name,
+                'image_url': product.images.first().image.url if product.images.exists() else '',
+                'description': product.description,
+                'attributes': attributes,
+                'price': price,
+                'discount': discount,
+                'category_level1': category_level1,
+                'category_level2': category_level2,
+                'category_level3': category_level3,
+            })
+
+        return JsonResponse({
+            'total_products': paginator.count,
+            'products': products_data
+        })
