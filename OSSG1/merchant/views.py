@@ -23,21 +23,82 @@ class MerchantRequiredMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
+from django.views.generic import ListView
+from django.utils.timezone import now, timedelta
+from django.db.models import Sum, Count, Avg
+from users.models import Review, OrderItem
+from django.db.models import F
+from django.db.models.functions import TruncDate
+from django.utils.timezone import now, localtime
+from collections import defaultdict
+
+
 class MerchantDashboardView(MerchantRequiredMixin, ListView):
     """ 商家管理首页 """
     template_name = "merchant/dashboard.html"
     context_object_name = "products"
 
     def get_queryset(self):
-        return Product.objects.filter(user=self.request.user)
+        return Product.objects.filter(user=self.request.user, is_deleted=False)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        orders = Order.objects.filter(seller=self.request.user)
+        user = self.request.user
+
+        # 所有订单
+        orders = Order.objects.filter(seller=user)
         context["orders"] = orders
-        context["total_sales"] = sum(order.total_amount for order in orders if order.status == "Shipped")
+
+        # 累计销售额（已完成）
+        context["total_sales"] = orders.filter(status="Completed").aggregate(
+            total=Sum("total_amount")
+        )["total"] or 0
+
+        # 待处理订单（已付款未发货）
         context["pending_orders"] = orders.filter(status="Paid").count()
+
+        # 销售趋势（近30天）
+        today = localtime(now()).date()
+        start_date = today - timedelta(days=29)
+        date_range = [start_date + timedelta(days=i) for i in range(30)]
+        sales_labels = [d.strftime("%m-%d") for d in date_range]
+
+        # 初始化每日销售额字典
+        sales_dict = defaultdict(float)
+        # 过滤已完成订单
+        orders = Order.objects.filter(seller=user, status="Completed")
+        filtered_orders = [
+            order for order in orders
+            if localtime(order.created_at).date() >= start_date
+        ]
+        # 手动汇总每日销售额
+        for order in filtered_orders:
+            order_date = localtime(order.created_at).date()
+            if start_date <= order_date <= today:
+                sales_dict[order_date] += float(order.total_amount)
+
+        # 构建销售数据列表
+        sales_data = [sales_dict.get(date, 0.0) for date in date_range]
+
+        context["sales_labels"] = sales_labels
+        context["sales_data"] = sales_data
+
+        # 热门商品（销量前5）
+        top_products = (
+            Product.objects.filter(user=user)
+            .annotate(
+                sales_count=Sum("order_items__quantity"),
+                total_sales=Sum(F("order_items__quantity") * F("order_items__price"))
+            )
+            .order_by("-sales_count")[:5]
+        )
+        context["top_products"] = top_products
+
+        # 最近订单（最新5条）
+        context["recent_orders"] = orders.order_by("-created_at")[:5]
+
         return context
+
 
 
 class ProductListView(MerchantRequiredMixin, ListView):
@@ -155,27 +216,61 @@ class GetRecommendedTagsView(View):
 
 
 
-
+from django.views.generic import ListView
+from django.db.models import Count
+from django.utils.functional import cached_property
 class OrderListView(MerchantRequiredMixin, ListView):
-    """ 商家查看订单列表 """
+    """商家查看订单列表视图"""
     template_name = "merchant/order_list.html"
     context_object_name = "orders"
+    paginate_by = 10  # 默认分页
+    ordering = "-created_at"
+
+    STATUS_CHOICES = {
+        'Paid': 'Paid',
+        'Shipped': 'Shipped',
+        'Completed': 'Completed',
+        'Cancelled': 'Cancelled',
+    }
+
+    @cached_property
+    def status_filter(self):
+        """获取状态筛选参数"""
+        return self.request.GET.get("status", "").strip()
 
     def get_queryset(self):
-        """ 获取当前商家所有订单，并按购买日期降序排列 """
-        status_filter = self.request.GET.get("status", "").strip()
-        orders = Order.objects.filter(seller=self.request.user).order_by("-created_at")
+        """查询当前商家的订单列表"""
+        queryset = Order.objects.filter(seller=self.request.user)
 
-        if status_filter:
-            orders = orders.filter(status=status_filter)
+        # 状态过滤
+        if self.status_filter in self.STATUS_CHOICES.values():
+            queryset = queryset.filter(status=self.status_filter)
 
-        return orders
+        # 优化查询，避免 N+1
+        queryset = queryset.select_related("user").prefetch_related("items")
+
+        return queryset.order_by(self.ordering)
 
     def get_context_data(self, **kwargs):
-        """ 传递筛选状态到模板 """
+        """添加额外上下文数据"""
         context = super().get_context_data(**kwargs)
-        context["status_filter"] = self.request.GET.get("status", "")
+        context["status_filter"] = self.status_filter
+
+        # 统计每种状态的订单数量
+        status_counts = Order.objects.filter(seller=self.request.user).values(
+            "status"
+        ).annotate(count=Count("id"))
+        context["status_counts"] = {item["status"]: item["count"] for item in status_counts}
+
         return context
+
+    def get_paginate_by(self, queryset):
+        """允许通过 GET 参数动态控制分页数量"""
+        try:
+            return int(self.request.GET.get("paginate_by", self.paginate_by))
+        except ValueError:
+            return self.paginate_by
+
 
 
 class OrderDetailView(MerchantRequiredMixin, DetailView):
@@ -222,44 +317,70 @@ class EditProductView(MerchantRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["product_form"] = ProductForm(instance=self.get_object())  # 使用 get_object()
-        context["pricing_form"] = PricingForm(instance=self.get_object().pricing)
+        product = self.get_object()
+        context["product"] = product
+        context["product_form"] = ProductForm(instance=product)
+        context["pricing_form"] = PricingForm(instance=product.pricing)
+        context["categories_level1"] = CategoryLevel1.objects.all()
         return context
 
     def post(self, request, *args, **kwargs):
-        # 確保 self.object 正確初始化
         self.object = self.get_object()
+        form = self.get_form()
+        pricing_form = PricingForm(request.POST, instance=self.object.pricing)
 
-        # 處理刪除圖片請求
+        # 图片删除请求
         delete_image_id = request.POST.get("delete_image")
         if delete_image_id:
             try:
-                image_instance = ProductImage.objects.get(
-                    id=delete_image_id,
-                    product=self.object,
-                    is_primary=False
-                )
-                image_instance.delete()
-                return JsonResponse({"status": "success", "message": "圖片刪除成功"})
+                image = ProductImage.objects.get(id=delete_image_id, product=self.object, is_primary=False)
+                image.delete()
+                return JsonResponse({"status": "success", "message": "图片已删除"})
             except ProductImage.DoesNotExist:
-                return JsonResponse({"status": "error", "message": "圖片不存在或無權限刪除"}, status=404)
+                return JsonResponse({"status": "error", "message": "图片不存在"}, status=404)
 
-        # 替換主圖
-        primary_image = request.FILES.get("replace_primary_image")
-        if primary_image:
-            primary_image_instance = self.object.images.filter(is_primary=True).first()
-            if primary_image_instance:
-                primary_image_instance.image = primary_image
-                primary_image_instance.save()
+        if form.is_valid() and pricing_form.is_valid():
+            product = form.save()
+            pricing_form.save()
 
-        # 添加非主圖
-        images = request.FILES.getlist("images")
-        for image in images:
-            ProductImage.objects.create(product=self.object, image=image)
+            # 主图替换
+            new_primary = request.FILES.get("replace_primary_image")
+            if new_primary:
+                primary = product.images.filter(is_primary=True).first()
+                if primary:
+                    primary.image = new_primary
+                    primary.save()
 
-        messages.success(request, "商品信息已更新！")
-        return super().post(request, *args, **kwargs)
+            # 新图片
+            for image in request.FILES.getlist("images"):
+                ProductImage.objects.create(product=product, image=image)
 
+            # 删除标签
+            delete_tags = request.POST.get("delete_tags", "")
+            for tag_id in delete_tags.split(","):
+                if tag_id.strip():
+                    ProductAttribute.objects.filter(id=tag_id.strip(), product=product).delete()
+
+            # 添加新标签
+            tags_str = request.POST.get("tags", "")
+            for tag in tags_str.split(","):
+                if ":" in tag:
+                    key, value = tag.split(":", 1)
+                    ProductAttribute.objects.create(product=product, key=key.strip(), value=value.strip())
+
+            messages.success(request, "商品信息已更新！")
+            return redirect(self.success_url)
+
+
+        else:
+            # ✅ 打印表单错误
+            print("ProductForm Errors:", form.errors)
+            print("PricingForm Errors:", pricing_form.errors)
+
+        context = self.get_context_data()
+        context["product_form"] = form
+        context["pricing_form"] = pricing_form
+        return self.render_to_response(context)
 
 
 
@@ -328,3 +449,17 @@ def reject_refund(request, order_id):
         messages.error(request, "当前订单状态无法拒绝退款。")
 
     return redirect('merchant:order_detail', order_id=order.id)
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+
+
+def mark_out_of_stock(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    # 设置库存数量为 0
+    product.stock_quantity = 0
+    product.save()
+
+    # 重定向到商品管理页面
+    return redirect('merchant:product_list')  # 请根据实际的 URL 名称更新

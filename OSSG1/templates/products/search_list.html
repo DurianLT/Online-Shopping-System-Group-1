@@ -44,48 +44,152 @@
     <h1 class="fw-bold mt-5">搜索结果</h1>
     
     {% if products %}
-        <div class="container">
-            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
-                {% for product in products %}
-                    <div class="col">
-                        <div class="card h-100">
-                            <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
-                                <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                                <div class="card-body">
-                                    <h5 class="card-title text-dark">{{ product.name }}</h5>
-                                    <p class="card-text text-muted">{{ product.description|slice:":50" }}...</p>
-                                    <p class="text-danger fw-bold">
-                                        {% if product.pricing.discount %}
-                                            ¥{{ product.pricing.price }} <del class="text-muted">¥{{ product.pricing.discount }}</del>
-                                        {% else %}
-                                            ¥{{ product.pricing.price }}
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </a>
+        <!-- 商品列表 -->
+<div class="container">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4" id="product-list">
+        {% for product in products %}
+            <div class="col product-item">
+                <div class="card h-100">
+                    <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
+                        <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">{{ product.name }}</h5>
+
+                            <div class="product-categories mb-2 d-flex align-items-center flex-wrap small text-muted">
+                                {% if product.category_level1 %}
+                                    <div class="me-1 category-link">
+                                        {{ product.category_level1.name }}
+                                    </div>
+                                {% endif %}
+                                {% if product.category_level2 %}
+                                    <div class="me-1 category-link">
+                                        <i class="bi bi-arrow-right-short"></i> {{ product.category_level2.name }}
+                                    </div>
+                                {% endif %}
+                                {% if product.category_level3 %}
+                                    <div class="me-1 category-link">
+                                        <i class="bi bi-arrow-right-short"></i> {{ product.category_level3.name }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- 属性展示区域 -->
+                            <div class="product-attributes mb-2 flex flex-wrap gap-2">
+                                {% for attr in product.attributes.all %}
+                                    <span class="product-attribute-tag attr-{{ attr.key|slugify }}">
+                                        {{ attr.key }}: {{ attr.value }}
+                                    </span>
+                                {% empty %}
+                                    <span class="product-attribute-tag">No attributes available.</span>
+                                {% endfor %}
+                            </div>
+
+                            <p class="text-danger fw-bold">
+                                {% if product.pricing.discount %}
+                                    ¥{{ product.pricing.price }} <del class="text-muted">¥{{ product.pricing.discount }}</del>
+                                {% else %}
+                                    ¥{{ product.pricing.price }}
+                                {% endif %}
+                            </p>
                         </div>
-                    </div>
-                {% endfor %}
+                    </a>
+                </div>
             </div>
-        </div>
+        {% endfor %}
+    </div>
+</div>
+
+    <div id="loading" style="display:none;">Loading...</div>
+    <div id="end-message" style="display:none;">End QAQ~</div>
     {% else %}
         <p>没有搜到符合条件的商品</p>
     {% endif %}
 {% endblock %}
 {% block extra_js %}
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const carouselElement = document.querySelector("#carouselExample");
-        const carousel = new bootstrap.Carousel(carouselElement);
-
-        carouselElement.addEventListener("mouseenter", function () {
-            carousel.pause(); // 鼠标悬停暂停轮播
-        });
-
-        carouselElement.addEventListener("mouseleave", function () {
-            carousel.cycle(); // 鼠标移开恢复轮播
-        });
+    let currentPage = 1;
+    let totalPages = null;
+    let loading = false;
+    let allLoaded = false;
+    const searchQuery = new URLSearchParams(window.location.search).get('q') || '';
+    
+    function loadMoreSearchResults() {
+        if (loading || allLoaded) return;
+    
+        loading = true;
+        document.getElementById('loading').style.display = 'block';
+    
+        fetch(`/api/products/search/?q=${searchQuery}&page=${currentPage + 1}`)
+            .then(response => response.json())
+            .then(data => {
+                const productList = document.getElementById('product-list');
+    
+                if (totalPages === null) {
+                    totalPages = Math.ceil(data.total_products / 8);
+                }
+    
+                if (data.products.length > 0) {
+                    currentPage++;
+    
+                    data.products.forEach(product => {
+                        const productHTML = `
+                            <div class="col product-item">
+                                <div class="card h-100">
+                                    <a href="/product/${product.id}" class="text-decoration-none">
+                                        <img src="${product.image_url}" class="card-img-top" alt="${product.name}">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-dark">${product.name}</h5>
+                                            <div class="product-categories mb-2 small text-muted">
+                                                ${product.category_level1 ? `<span>${product.category_level1.name}</span>` : ''}
+                                                ${product.category_level2 ? `<span> > ${product.category_level2.name}</span>` : ''}
+                                                ${product.category_level3 ? `<span> > ${product.category_level3.name}</span>` : ''}
+                                            </div>
+                                            <div class="mb-2">
+                                                ${product.attributes && product.attributes.length > 0
+                                                    ? product.attributes.map(attr =>
+                                                        `<span class="product-attribute-tag">${attr.key}: ${attr.value}</span>`
+                                                      ).join('')
+                                                    : '<span class="product-attribute-tag">No attributes.</span>'
+                                                }
+                                            </div>
+                                            <p class="text-danger fw-bold">
+                                                ${product.discount 
+                                                    ? `¥${product.price} <del class="text-muted">¥${product.discount}</del>` 
+                                                    : `¥${product.price}`}
+                                            </p>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        productList.insertAdjacentHTML('beforeend', productHTML);
+                    });
+    
+                    if (currentPage >= totalPages) {
+                        allLoaded = true;
+                        document.getElementById('end-message').style.display = 'block';
+                    }
+                } else {
+                    allLoaded = true;
+                    document.getElementById('end-message').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error("加载搜索结果出错:", error);
+            })
+            .finally(() => {
+                loading = false;
+                document.getElementById('loading').style.display = 'none';
+            });
+    }
+    
+    window.addEventListener('scroll', function () {
+        if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 10)) {
+            loadMoreSearchResults();
+        }
     });
+    
+
 </script>
     
 {% endblock %}

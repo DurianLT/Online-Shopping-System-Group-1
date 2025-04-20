@@ -5,6 +5,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/products/product_list.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         /* 轮播图样式 */
         #carouselExample {
@@ -140,6 +141,59 @@
             }
         }
 
+        .product-attribute-tag {
+            padding: 6px 12px;
+            border-radius: 16px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: rgba(100, 100, 100, 0.8); /* 默认颜色（灰色） */
+            backdrop-filter: blur(4px); /* 背景微模糊 */
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px;
+        }
+        
+        /* 根据不同属性名设置不同背景色 */
+        .attr-color {
+            background-color: rgba(35, 250, 250, 0.8); /* 红色 */
+        }
+        
+        .attr-size {
+            background-color: rgba(54, 162, 235, 0.8); /* 蓝色 */
+        }
+        
+        .attr-material {
+            background-color: rgba(75, 192, 192, 0.8); /* 青绿色 */
+        }
+        
+        .attr-brand {
+            background-color: rgba(35, 99, 236, 0.8); /* 黄色 */
+        }
+        
+        .attr-style {
+            background-color: rgba(47, 135, 235, 0.8); /* 紫色 */
+        }
+        
+        .no-attr {
+            background-color: rgba(200, 200, 200, 0.6);
+            color: #333;
+        }
+
+        .category-link {
+            transition: color 0.2s ease-in-out;
+        }
+        
+        .category-link:hover {
+            color: #0d6efd;
+            text-decoration: underline;
+        }
+        
+        .product-categories i {
+            font-size: 0.85rem;
+        }
+        
+
     </style>
 {% endblock %}
 
@@ -227,34 +281,64 @@
     </div>
 </div>
 
-    <!-- 商品列表 -->
-    <div class="container">
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4" id="product-list">
-            {% for product in products %}
-                <div class="col product-item">
-                    <div class="card h-100">
-                        <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
-                            <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                            <div class="card-body">
-                                <h5 class="card-title text-dark">{{ product.name }}</h5>
-                                <p class="card-text text-muted">{{ product.description|slice:":50" }}...</p>
-                                <p class="text-danger fw-bold">
-                                    {% if product.pricing.discount %}
-                                        ¥{{ product.pricing.price }} <del class="text-muted">¥{{ product.pricing.discount }}</del>
-                                    {% else %}
-                                        ¥{{ product.pricing.price }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+<!-- 商品列表 -->
+<div class="container">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4" id="product-list">
+        {% for product in products %}
+            <div class="col product-item">
+                <div class="card h-100">
+                    <a href="{% url 'product-detail' product.pk %}" class="text-decoration-none">
+                        <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">{{ product.name }}</h5>
 
-        <div id="loading" style="display:none;">Loading...</div>
-        <div id="end-message" style="display:none;">End QAQ~</div>
+                            <div class="product-categories mb-2 d-flex align-items-center flex-wrap small text-muted">
+                                {% if product.category_level1 %}
+                                    <div class="me-1 category-link">
+                                        {{ product.category_level1.name }}
+                                    </div>
+                                {% endif %}
+                                {% if product.category_level2 %}
+                                    <div class="me-1 category-link">
+                                        <i class="bi bi-arrow-right-short"></i> {{ product.category_level2.name }}
+                                    </div>
+                                {% endif %}
+                                {% if product.category_level3 %}
+                                    <div class="me-1 category-link">
+                                        <i class="bi bi-arrow-right-short"></i> {{ product.category_level3.name }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- 属性展示区域 -->
+                            <div class="product-attributes mb-2 flex flex-wrap gap-2">
+                                {% for attr in product.attributes.all %}
+                                    <span class="product-attribute-tag attr-{{ attr.key|slugify }}">
+                                        {{ attr.key }}: {{ attr.value }}
+                                    </span>
+                                {% empty %}
+                                    <span class="product-attribute-tag">No attributes available.</span>
+                                {% endfor %}
+                            </div>
+
+                            <p class="text-danger fw-bold">
+                                {% if product.pricing.discount %}
+                                    ¥{{ product.pricing.price }} <del class="text-muted">¥{{ product.pricing.discount }}</del>
+                                {% else %}
+                                    ¥{{ product.pricing.price }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
     </div>
+</div>
+
+    <div id="loading" style="display:none;">Loading...</div>
+    <div id="end-message" style="display:none;">End QAQ~</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -296,27 +380,27 @@ document.addEventListener('DOMContentLoaded', function () {
     let totalPages = null;
     let loading = false;
     let allLoaded = false;
-
+    
     function loadMoreProducts() {
         if (loading || allLoaded) return;
-
+    
         loading = true;
         document.getElementById('loading').style.display = 'block';
-
+    
         fetch(`/api/products/?page=${currentPage + 1}`)
             .then(response => response.json())
             .then(data => {
                 const productList = document.getElementById('product-list');
-
+    
                 if (totalPages === null) {
                     totalPages = Math.ceil(data.total_products / 8);
                 }
-
+    
                 const products = data.products;
-
+    
                 if (products.length > 0) {
                     currentPage++;
-
+    
                     products.forEach(product => {
                         const productHTML = `
                             <div class="col product-item">
@@ -325,7 +409,41 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <img src="${product.image_url}" class="card-img-top" alt="${product.name}">
                                         <div class="card-body">
                                             <h5 class="card-title text-dark">${product.name}</h5>
-                                            <p class="card-text text-muted">${product.description.slice(0, 50)}...</p>
+
+                                            <div class="product-categories mb-2 d-flex align-items-center flex-wrap small text-muted">
+                                                ${
+                                                    product.category_level1
+                                                        ? `<div class="me-1 category-link">
+                                                                ${product.category_level1.name}
+                                                        </div>`
+                                                        : ''
+                                                }
+                                                ${
+                                                    product.category_level2
+                                                        ? `<div class="me-1 category-link">
+                                                                <i class="bi bi-arrow-right-short"></i> ${product.category_level2.name}
+                                                        </div>`
+                                                        : ''
+                                                }
+                                                ${
+                                                    product.category_level3
+                                                        ? `<div class="me-1 category-link">
+                                                                <i class="bi bi-arrow-right-short"></i> ${product.category_level3.name}
+                                                        </div>`
+                                                        : ''
+                                                }
+                                            </div>
+
+                                            <div class="mb-2" >
+                                                ${
+                                                    product.attributes && product.attributes.length > 0
+                                                    ? product.attributes.map(attr =>
+                                                        `<span class="product-attribute-tag attr-${attr.key.toLowerCase()}">${attr.key}: ${attr.value}</span>`
+                                                    ).join('')
+                                                    : '<span class="product-attribute-tag">No attributes available.</span>'
+                                                }
+                                            </div>
+
                                             <p class="text-danger fw-bold">
                                                 ${product.discount 
                                                     ? `¥${product.price} <del class="text-muted">¥${product.discount}</del>` 
@@ -338,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         `;
                         productList.insertAdjacentHTML('beforeend', productHTML);
                     });
-
+    
                     if (currentPage >= totalPages) {
                         allLoaded = true;
                         document.getElementById('end-message').style.display = 'block';
@@ -356,16 +474,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('loading').style.display = 'none';
             });
     }
-
+    
     document.addEventListener("DOMContentLoaded", () => {
         loadMoreProducts();
     });
-
+    
+    // 监听滚动事件，判断是否需要加载更多
     window.addEventListener('scroll', function () {
         if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 10)) {
             loadMoreProducts();
         }
     });
+
 </script>
 
     
