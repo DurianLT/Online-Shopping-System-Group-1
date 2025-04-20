@@ -13,7 +13,12 @@ class CustomUserCreationForm(forms.ModelForm):
     last_name = forms.CharField(label="Last Name", max_length=150, required=False)
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
     password2 = forms.CharField(label="Confirm Password", widget=forms.PasswordInput)
-    shipping_address = forms.CharField(label="Shipping Address", widget=forms.Textarea, required=False)
+    shipping_address = forms.CharField(
+        label="Shipping Address",
+        widget=forms.Textarea,
+        required=True,
+        error_messages={"required": "Shipping address is required."}
+    )
 
     class Meta:
         model = CustomUser
@@ -40,17 +45,21 @@ class CustomUserCreationForm(forms.ModelForm):
             raise ValidationError("Your password cannot be the same as your username. Please choose a different password.")
         return password2
 
+    def clean_shipping_address(self):
+        shipping_address = self.cleaned_data.get("shipping_address")
+        if not shipping_address or not shipping_address.strip():
+            raise ValidationError("Shipping address cannot be empty.")
+        return shipping_address
+
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.password = make_password(self.cleaned_data["password1"])  # Hash and save the password
-        user.first_name = self.cleaned_data.get("first_name", "")  # Store First Name, default is an empty string
-        user.last_name = self.cleaned_data.get("last_name", "")  # Store Last Name, default is an empty string
+        user.password = make_password(self.cleaned_data["password1"])
+        user.first_name = self.cleaned_data.get("first_name", "")
+        user.last_name = self.cleaned_data.get("last_name", "")
         if commit:
             user.save()
-            # If a shipping address is provided, create an address record
             shipping_address = self.cleaned_data.get("shipping_address")
-            if shipping_address:
-                Address.objects.create(user=user, address=shipping_address, is_default=True)
+            Address.objects.create(user=user, address=shipping_address, is_default=True)
         return user
 
 class CustomAuthenticationForm(forms.Form):
