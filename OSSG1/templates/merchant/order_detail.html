@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
 
-{% block title %}订单详情 - #{{ order.id }}{% endblock %}
+{% block title %}Order Details - #{{ order.id }}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="fw-bold">订单详情</h2>
+    <h2 class="fw-bold">Order Details</h2>
 
     <!-- 订单信息 -->
     <div class="card p-4 mt-3 shadow-sm">
-        <h4>订单编号: #{{ order.id }}</h4>
-        <p><strong>买家:</strong> {{ order.user.username }}</p>
-        <p><strong>创建时间:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
-        <p><strong>订单状态:</strong> 
+        <h4>Order Number: #{{ order.id }}</h4>
+        <p><strong>Buyer:</strong> {{ order.user.username }}</p>
+        <p><strong>Creation time:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
+        <p><strong>Order status:</strong> 
             <span class="badge 
             {% if order.status == 'Pending' %}bg-warning
             {% elif order.status == 'Paid' %}bg-success
@@ -24,19 +24,19 @@
             {{ order.get_status_display }}
         </span>
         </p>
-        <p><strong>收货地址:</strong> {{ order.address.address }}</p>
+        <p><strong>Delivery address:</strong> {{ order.address.address }}</p>
     </div>
 
     <!-- 商品列表 -->
     <div class="card p-4 mt-4 shadow-sm">
-        <h4 class="fw-bold">商品列表</h4>
+        <h4 class="fw-bold">Product list</h4>
         <table class="table table-striped mt-3">
             <thead>
                 <tr>
-                    <th>商品</th>
-                    <th>单价</th>
-                    <th>数量</th>
-                    <th>小计</th>
+                    <th>Commodity</th>
+                    <th>Unit price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,13 +52,13 @@
         </table>
 
         <div class="text-end mt-3">
-            <h4 class="fw-bold">订单总额: ¥{{ order.total_amount }}</h4>
+            <h4 class="fw-bold">Total order amount: ¥{{ order.total_amount }}</h4>
         </div>
     </div>
 
 
     <div class="card p-4 mt-4 shadow-sm">
-        <h4 class="fw-bold">状态变更历史</h4>
+        <h4 class="fw-bold">Status change history</h4>
         {% if status_histories %}
         <ul class="list-group">
             {% for history in status_histories %}
@@ -68,7 +68,7 @@
             {% endfor %}
         </ul>
         {% else %}
-        <p class="text-muted">暂无状态变更记录</p>
+        <p class="text-muted">There is no record of status change for the time being</p>
         {% endif %}
     </div>
 
@@ -76,32 +76,32 @@
     {% if order.status == 'Paid' %}
     <form method="post" action="{% url 'merchant:ship_order' order.id %}">
         {% csrf_token %}
-        <button type="submit" class="btn btn-primary">标记为已发货</button>
+        <button type="submit" class="btn btn-primary">Mark as shipped</button>
     </form>
 
     {% elif order.status == 'Shipped' %}
-        <span class="btn btn-secondary disabled">等待买家确认收货</span>
+        <span class="btn btn-secondary disabled">Wait for the buyer's confirmation of receipt of the goods</span>
 
     {% elif order.status == 'Completed' %}
-        <span class="btn btn-success disabled">订单已完成</span>
+        <span class="btn btn-success disabled">The order has been completed.</span>
 
     {% elif order.status == 'Cancelled' %}
-        <span class="btn btn-danger disabled">订单已取消</span>
+        <span class="btn btn-danger disabled">The order has been cancelled.</span>
 
     {% elif order.status == 'Refunding' %}
         <div class="d-flex gap-3">
             <form method="post" action="{% url 'merchant:approve_refund' order.id %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success">同意退款</button>
+                <button type="submit" class="btn btn-success">Agree to refund</button>
             </form>
             <form method="post" action="{% url 'merchant:reject_refund' order.id %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger">拒绝退款</button>
+                <button type="submit" class="btn btn-danger">Refuse a refund</button>
             </form>
         </div>
 
     {% elif order.status == 'Refunded' %}
-        <span class="btn btn-dark disabled">订单已退款</span>
+        <span class="btn btn-dark disabled">The order has been refunded.</span>
     {% endif %}
 
 

@@ -13,10 +13,10 @@ class ReviewForm(forms.ModelForm):
             'comment': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'placeholder': '请输入评价内容'
+                'placeholder': 'Please enter tyour evaluation content'
             }),
         }
         labels = {
-            'rating': '评分 (1-5)',
-            'comment': '评价内容',
+            'rating': 'Rating (1-5)',
+            'comment': 'Evaluation content',
         }

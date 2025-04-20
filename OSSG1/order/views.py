@@ -211,11 +211,11 @@ def order_list(request):
     # 状态选项（用于前端显示当前筛选状态）
     status_choices = {
         '': '全部',
-        'Pending': '待支付',
-        'Paid': '已支付',
-        'Shipped': '已发货',
-        'Completed': '已完成',
-        'Cancelled': '已取消',
+        'Pending': 'Pending',
+        'Paid': 'Paid',
+        'Shipped': 'Shipped',
+        'Completed': 'Completed',
+        'Cancelled': 'Cancelled',
     }
     
     return render(request, "order/order_list.html", {
