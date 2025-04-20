@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% load widget_tweaks %}
 
-{% block title %}编辑商品 - {{ product.name }}{% endblock %}
+{% block title %}Edit the product - {{ product.name }}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">编辑商品</h2>
+        <h2 class="fw-bold mb-0">Edit the product</h2>
         <a href="{% url 'merchant:product_list' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i>返回商品列表
+            <i class="bi bi-arrow-left me-1"></i>Return to the list of goods
         </a>
     </div>
 
@@ -19,12 +19,12 @@
         <!-- 商品信息卡片 -->
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-header bg-light">
-                <h4 class="fw-bold mb-0">商品信息</h4>
+                <h4 class="fw-bold mb-0">Commodity information</h4>
             </div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="{{ product_form.name.id_for_label }}" class="form-label">商品名称</label>
+                        <label for="{{ product_form.name.id_for_label }}" class="form-label">Product name</label>
                         {{ product_form.name|add_class:'form-control' }}
                         {% if product_form.name.errors %}
                             <div class="invalid-feedback d-block">
@@ -36,11 +36,11 @@
                     </div>
                     
                     <div class="col-md-6">
-                        <label for="{{ product_form.sku.id_for_label }}" class="form-label">SKU编码</label>
+                        <label for="{{ product_form.sku.id_for_label }}" class="form-label">SKU coding</label>
                         <div class="input-group">
                             {{ product_form.sku|add_class:'form-control' }}
                             <button type="button" class="btn btn-outline-secondary" id="generate-sku">
-                                <i class="bi bi-arrow-repeat me-1"></i>生成SKU
+                                <i class="bi bi-arrow-repeat me-1"></i>Generate SKU
                             </button>
                         </div>
                         {% if product_form.sku.errors %}
@@ -53,7 +53,7 @@
                     </div>
                     
                     <div class="col-12">
-                        <label for="{{ product_form.description.id_for_label }}" class="form-label">商品描述</label>
+                        <label for="{{ product_form.description.id_for_label }}" class="form-label">Product description</label>
                         {{ product_form.description|add_class:'form-control' }}
                         {% if product_form.description.errors %}
                             <div class="invalid-feedback d-block">
@@ -67,7 +67,7 @@
                     <div class="col-md-4">
                         <div class="form-check form-switch">
                             {{ product_form.hidden|add_class:'form-check-input' }}
-                            <label class="form-check-label" for="{{ product_form.hidden.id_for_label }}">隐藏商品</label>
+                            <label class="form-check-label" for="{{ product_form.hidden.id_for_label }}">Hidden goods</label>
                             {% if product_form.hidden.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in product_form.hidden.errors %}
@@ -81,7 +81,7 @@
                     <div class="col-md-4">
                         <div class="form-check form-switch">
                             {{ product_form.is_physical|add_class:'form-check-input' }}
-                            <label class="form-check-label" for="{{ product_form.is_physical.id_for_label }}">实物商品</label>
+                            <label class="form-check-label" for="{{ product_form.is_physical.id_for_label }}">Physical commodities</label>
                             {% if product_form.is_physical.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in product_form.is_physical.errors %}
@@ -93,7 +93,7 @@
                     </div>
                     
                     <div class="col-md-4">
-                        <label for="{{ product_form.stock_quantity.id_for_label }}" class="form-label">库存数量</label>
+                        <label for="{{ product_form.stock_quantity.id_for_label }}" class="form-label">Inventory quantity</label>
                         {{ product_form.stock_quantity|add_class:'form-control' }}
                         {% if product_form.stock_quantity.errors %}
                             <div class="invalid-feedback d-block">
@@ -109,13 +109,13 @@
         <!-- 定价信息卡片 -->
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-header bg-light">
-                <h4 class="fw-bold mb-0">定价信息</h4>
+                <h4 class="fw-bold mb-0">Pricing information</h4>
             </div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="{{ pricing_form.price.id_for_label }}" class="form-label">商品价格</label>
+                            <label for="{{ pricing_form.price.id_for_label }}" class="form-label">Commodity price</label>
                             {{ pricing_form.price|add_class:'form-control' }}
                             {% if pricing_form.price.errors %}
                                 <div class="invalid-feedback d-block">
@@ -133,15 +133,15 @@
         <!-- 商品分类卡片 -->
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-header bg-light">
-                <h4 class="fw-bold mb-0">商品分类</h4>
+                <h4 class="fw-bold mb-0">Commodity classification</h4>
             </div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label">一级分类</label>
+                        <label class="form-label">First-level classification</label>
                         <div class="input-group">
                             <select id="id_category_level1" name="category_level1" class="form-select">
-                                <option value="">选择一级分类</option>
+                                <option value="">Select the first-level classification</option>
                                 {% for category in categories_level1 %}
                                     <option value="{{ category.id }}" {% if product.category_level1 and product.category_level1.id == category.id %}selected{% endif %}>
                                         {{ category.name }}
@@ -166,13 +166,13 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">二级分类</label>
+                        <label class="form-label">Secondary classification</label>
                         <div class="input-group">
                             <select id="id_category_level2" name="category_level2" class="form-select" {% if not product.category_level2 %}disabled{% endif %}>
                                 {% if product.category_level2 %}
                                     <option value="{{ product.category_level2.id }}">{{ product.category_level2.name }}</option>
                                 {% else %}
-                                    <option value="">选择二级分类</option>
+                                    <option value="">Select the secondary classification</option>
                                 {% endif %}
                             </select>
                             <button type="button" class="btn btn-outline-warning" id="custom-category2" {% if not product.category_level2 %}disabled{% endif %}>
@@ -182,7 +182,7 @@
                         <input type="text" id="custom_category_level2" name="custom_category_level2"
                                value="{{ product_form.custom_category_level2.value|default_if_none:'' }}"
                                class="form-control mt-2 {% if not product_form.custom_category_level2.value %}d-none{% endif %}"
-                               placeholder="输入自定义分类">
+                               placeholder="Enter a custom category">
                         {% if product_form.category_level2.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in product_form.category_level2.errors %}
@@ -193,13 +193,13 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">三级分类</label>
+                        <label class="form-label">Three-level classification</label>
                         <div class="input-group">
                             <select id="id_category_level3" name="category_level3" class="form-select" {% if not product.category_level3 %}disabled{% endif %}>
                                 {% if product.category_level3 %}
                                     <option value="{{ product.category_level3.id }}">{{ product.category_level3.name }}</option>
                                 {% else %}
-                                    <option value="">选择三级分类</option>
+                                    <option value="">Select the three-level classification</option>
                                 {% endif %}
                             </select>
                             <button type="button" class="btn btn-outline-warning" id="custom-category3" {% if not product.category_level3 %}disabled{% endif %}>
@@ -209,7 +209,7 @@
                         <input type="text" id="custom_category_level3" name="custom_category_level3"
                                value="{{ product_form.custom_category_level3.value|default_if_none:'' }}"
                                class="form-control mt-2 {% if not product_form.custom_category_level3.value %}d-none{% endif %}"
-                               placeholder="输入自定义分类">
+                               placeholder="Enter a custom category">
                         {% if product_form.category_level3.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in product_form.category_level3.errors %}
@@ -225,7 +225,7 @@
         <!-- 商品标签卡片 -->
         <div class="card mb-4 border-0 shadow-sm" id="recommended-tags-card" style="display: none;">
             <div class="card-header bg-light">
-                <h4 class="fw-bold mb-0">推荐标签</h4>
+                <h4 class="fw-bold mb-0">Recommended tags</h4>
             </div>
             <div class="card-body">
                 <div id="recommended-tags" class="d-flex flex-wrap gap-2"></div>
@@ -234,7 +234,7 @@
                     <div class="input-group">
                         <input type="text" id="tag-input" class="form-control" placeholder="请输入标签内容">
                         <button type="button" id="add-tag-btn" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-1"></i>添加标签
+                            <i class="bi bi-plus-circle me-1"></i>Add a label
                         </button>
                     </div>
                 </div>
@@ -244,7 +244,7 @@
         <!-- 已添加标签卡片 -->
         <div class="card mb-4 border-0 shadow-sm" id="added-tags-card" {% if not product.attributes.exists %}style="display: none;"{% endif %}>
             <div class="card-header bg-light">
-                <h4 class="fw-bold mb-0">已添加标签</h4>
+                <h4 class="fw-bold mb-0">Labels have been added.</h4>
             </div>
             <div class="card-body">
                 <div id="added-tags" class="d-flex flex-wrap gap-2">
@@ -266,7 +266,7 @@
         <!-- 主图管理卡片 -->
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-header bg-light">
-                <h4 class="fw-bold mb-0">主图管理</h4>
+                <h4 class="fw-bold mb-0">Main image management</h4>
             </div>
             <div class="card-body">
                 <div id="primary-image-container" class="d-flex flex-wrap gap-3">
@@ -277,7 +277,7 @@
                                     <img src="{{ product_image.image.url }}" class="card-img-top" alt="主图" style="width: 200px; height: 200px; object-fit: contain;">
                                     <div class="card-body p-2">
                                         <label for="replace-primary-image" class="btn btn-sm btn-outline-primary w-100">
-                                            <i class="bi bi-arrow-repeat me-1"></i>替换主图
+                                            <i class="bi bi-arrow-repeat me-1"></i>Replace the main image
                                         </label>
                                         <input type="file" name="replace_primary_image" class="d-none" id="replace-primary-image">
                                     </div>
@@ -292,9 +292,9 @@
         <!-- 其他图片管理卡片 -->
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <h4 class="fw-bold mb-0">其他图片管理</h4>
+                <h4 class="fw-bold mb-0">Other image management</h4>
                 <button type="button" class="btn btn-sm btn-outline-primary" id="add-image-btn">
-                    <i class="bi bi-plus-circle me-1"></i>添加图片
+                    <i class="bi bi-plus-circle me-1"></i>Add pictures
                 </button>
             </div>
             <div class="card-body">
@@ -306,7 +306,7 @@
                                     <img src="{{ product_image.image.url }}" class="card-img-top" alt="商品图片" style="width: 200px; height: 200px; object-fit: contain;">
                                     <div class="card-body p-2">
                                         <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="deleteImage({{ product_image.id }})">
-                                            <i class="bi bi-trash me-1"></i>删除图片
+                                            <i class="bi bi-trash me-1"></i>Delete the picture
                                         </button>
                                     </div>
                                 </div>
@@ -322,10 +322,10 @@
         <!-- 表单提交按钮 -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-5">
             <button type="submit" class="btn btn-primary px-4">
-                <i class="bi bi-save me-1"></i>保存修改
+                <i class="bi bi-save me-1"></i>Save the modifications
             </button>
             <a href="{% url 'merchant:product_list' %}" class="btn btn-outline-secondary px-4">
-                <i class="bi bi-x-circle me-1"></i>取消
+                <i class="bi bi-x-circle me-1"></i>Cancel
             </a>
         </div>
     </form>
@@ -359,7 +359,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch(`/merchant/get_subcategories/?parent_id=${parentId}&level=${level}`)
             .then(response => response.json())
             .then(data => {
-                targetField.innerHTML = '<option value="">选择分类</option>';
+                targetField.innerHTML = '<option value="">Select the category</option>';
                 if (data.length > 0) {
                     data.forEach(item => {
                         targetField.add(new Option(item.name, item.id));
@@ -377,8 +377,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedOption = this.options[this.selectedIndex];
         const name = selectedOption.text;
 
-        level2Field.innerHTML = '<option value="">选择二级分类</option>';
-        level3Field.innerHTML = '<option value="">选择三级分类</option>';
+        level2Field.innerHTML = '<option value="">Select the secondary classification</option>';
+        level3Field.innerHTML = '<option value="">Select the three-level classification</option>';
         level2Field.disabled = true;
         level3Field.disabled = true;
         customCategory2.disabled = true;
@@ -391,7 +391,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     level2Field?.addEventListener("change", function () {
-        level3Field.innerHTML = '<option value="">选择三级分类</option>';
+        level3Field.innerHTML = '<option value="">Select the three-level classification</option>';
         level3Field.disabled = true;
         customCategory3.disabled = true;
 
@@ -492,7 +492,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             document.querySelector("#tag-input-container").style.display = "block";
                             const tagInput = document.querySelector("#tag-input");
                             tagInput.value = "";
-                            tagInput.placeholder = `${tag}：请输入内容`;
+                            tagInput.placeholder = `${tag}：Please enter the content.`;
                             document.querySelector("#add-tag-btn").dataset.tag = tag;
                             tagInput.focus();
                         });
@@ -522,7 +522,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 删除已有图片
     window.deleteImage = function (imageId) {
-        if (!confirm("确定要删除此图片？")) return;
+        if (!confirm("Make sure to delete this picture？")) return;
         fetch("", {
             method: "POST",
             headers: {
@@ -536,9 +536,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.status === "success") {
                 const el = document.getElementById("image-" + imageId);
                 if (el) el.remove();
-                showToast("图片删除成功", "success");
+                showToast("The picture was deleted successfully.", "success");
             } else {
-                showToast(data.message || "删除失败", "danger");
+                showToast(data.message || "Deletion failed", "danger");
             }
         });
     };
