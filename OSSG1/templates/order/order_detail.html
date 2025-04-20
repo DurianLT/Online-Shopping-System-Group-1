@@ -97,8 +97,6 @@
             <a href="{% url 'confirm_receipt' order.id %}" class="btn btn-primary btn-lg">confirm the receipt of goods</a>
         {% elif order.status == 'Completed' %}
             <span class="btn btn-success btn-lg disabled">Done</span>
-        {% elif order.status == 'Cancelled' %}
-            <span class="btn btn-danger btn-lg disabled">Canceled</span>
         {% endif %}
         {% if order.status == 'Paid' or order.status == 'Shipped' %}
             <a href="{% url 'request_refund' order.id %}" class="btn btn-warning btn-lg">Request a Refund</a>
