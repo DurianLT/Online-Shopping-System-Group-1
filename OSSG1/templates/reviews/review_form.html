@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h4 class="mb-3">{{ view.object.pk|yesno:"编辑评价,提交评价" }}</h4>
+  <h4 class="mb-3">{{ view.object.pk|yesno:"Edit Review,Submit Review" }}</h4>
 
   <form method="post">
     {% csrf_token %}
@@ -30,7 +30,7 @@
       {% endfor %}
     </div>
 
-    <button type="submit" class="btn btn-primary">{{ view.object.pk|yesno:"保存修改,提交评价" }}</button>
+    <button type="submit" class="btn btn-primary">{{ view.object.pk|yesno:"Save Changes,Submit Review" }}</button>
   </form>
 </div>
 
