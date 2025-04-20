@@ -94,14 +94,14 @@
         {% elif order.status == 'Paid' %}
             <span class="btn btn-secondary btn-lg disabled">Paid</span>
         {% elif order.status == 'Shipped' %}
-            <a href="{% url 'confirm_receipt' order.id %}" class="btn btn-primary btn-lg">确认收货</a>
+            <a href="{% url 'confirm_receipt' order.id %}" class="btn btn-primary btn-lg">confirm the receipt of goods</a>
         {% elif order.status == 'Completed' %}
             <span class="btn btn-success btn-lg disabled">Done</span>
         {% elif order.status == 'Cancelled' %}
             <span class="btn btn-danger btn-lg disabled">Canceled</span>
         {% endif %}
         {% if order.status == 'Paid' or order.status == 'Shipped' %}
-            <a href="{% url 'request_refund' order.id %}" class="btn btn-warning btn-lg">请求退款</a>
+            <a href="{% url 'request_refund' order.id %}" class="btn btn-warning btn-lg">Request a Refund</a>
         {% elif order.status == 'Refunding' %}
             <div class="alert alert-info">Please be patient while the refund is being processed.</div>
         {% elif order.status == 'Refunded' %}
