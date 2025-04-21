@@ -70,7 +70,7 @@ class Order(models.Model):
         ('Shipped', 'Shipped'),
         ('Completed', 'Completed'),
         ('Cancelled', 'Cancelled'),
-        ('Refunding', 'Refundin'),  # 新增退款中状态
+        ('Refunding', 'Refunding'),  # 新增退款中状态
         ('Refunded', 'Refunded'),  # 新增已退款状态
     ]
 
