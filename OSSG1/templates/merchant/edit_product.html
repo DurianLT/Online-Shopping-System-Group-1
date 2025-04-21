@@ -155,7 +155,7 @@
                         <input type="text" id="custom_category_level1" name="custom_category_level1"
                                value="{{ product_form.custom_category_level1.value|default_if_none:'' }}"
                                class="form-control mt-2 {% if not product_form.custom_category_level1.value %}d-none{% endif %}"
-                               placeholder="输入自定义分类">
+                               placeholder="Inter your category">
                         {% if product_form.category_level1.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in product_form.category_level1.errors %}

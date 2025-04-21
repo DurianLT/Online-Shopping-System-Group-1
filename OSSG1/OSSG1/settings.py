@@ -92,7 +92,7 @@ WSGI_APPLICATION = "OSSG1.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ossg1',
+        'NAME': 'ossg1db',
         'USER': 'root',
         'PASSWORD': 'Duanlu233!',
         'HOST': '154.21.200.175',
