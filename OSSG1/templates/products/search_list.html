@@ -7,34 +7,165 @@
 
     <link rel="stylesheet" href="{% static 'css/products/product_list.css' %}">
     <style>
-        /* 轮播图样式 */
-        #carouselExample {
-            max-width: 1200px;
-            height: 400px;
-            margin: 0 auto;
-        }
+/* 自定义箭头样式 */
+.custom-arrow {
+    filter: invert(0);
+    transition: filter 0.3s ease-in-out;
+}
 
-        .carousel-inner,
-        .carousel-item {
-            height: 100%;
-        }
+#carouselExample:hover .custom-arrow {
+    filter: invert(1); /* 反转颜色 */
+}
 
-        .carousel-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        }
+.category-sidebar {
+    width: 220px;
+    height: 400px; /* 设置最大高度 */
+    overflow-y: auto; /* 允许垂直滚动 */
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    position: relative;
+    z-index: 10;
+    border-radius: 12px; /* 添加圆角 */
+}
 
-        /* 自定义箭头样式 */
-        .custom-arrow {
-            filter: invert(0);
-            transition: filter 0.3s ease-in-out;
-        }
+.category-item {
+    padding: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    border-radius: 8px; /* 给单个分类项加圆角 */
+}
 
-        #carouselExample:hover .custom-arrow {
-            filter: invert(1); /* 反转颜色 */
-        }
+.subcategory-container {
+    position: relative;
+    flex-grow: 1;    
+    width: 0px;
+}
+
+.category-item:hover {
+    background-color: #e9ecef;
+}
+
+.subcategory-panel {
+    position: absolute;
+    top: 0;
+    left: 0px;
+    width: 720px;
+    height: 400px; /* 设置最大高度 */
+    overflow-y: auto; /* 允许垂直滚动 */
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: none;
+    overflow-y: auto;
+    z-index: 20;
+    padding: 20px;
+    border-radius: 12px; /* 子分类浮动卡片圆角 */
+}
+
+.subcategory-group {
+    margin-bottom: 20px;
+}
+
+.subcategory-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.subcategory-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.subcategory-list a {
+    background: #f2f2f2;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+}
+
+.subcategory-list a:hover {
+    background-color: #e0e0e0;
+}
+
+.category-dropdown {
+    display: none;
+    padding-bottom: 10px;
+}
+
+/* 响应式：当屏幕宽度小于768px时，隐藏轮播图并将分类改为下拉菜单 */
+@media (max-width: 768px) {
+    #carouselExample {
+        display: none; /* 隐藏轮播图 */
+    }
+
+    .category-sidebar {
+        display: none; /* 隐藏左侧分类栏 */
+    }
+
+    .category-dropdown {
+        display: block;
+    }
+
+    .subcategory-container {
+        display: none; /* 隐藏子分类 */
+    }
+}
+
+.product-attribute-tag {
+    padding: 6px 12px;
+    border-radius: 16px;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    background-color: rgba(100, 100, 100, 0.8); /* 默认颜色（灰色） */
+    backdrop-filter: blur(4px); /* 背景微模糊 */
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px;
+}
+
+/* 根据不同属性名设置不同背景色 */
+.attr-color {
+    background-color: rgba(35, 250, 250, 0.8); /* 红色 */
+}
+
+.attr-size {
+    background-color: rgba(54, 162, 235, 0.8); /* 蓝色 */
+}
+
+.attr-material {
+    background-color: rgba(75, 192, 192, 0.8); /* 青绿色 */
+}
+
+.attr-brand {
+    background-color: rgba(35, 99, 236, 0.8); /* 黄色 */
+}
+
+.attr-style {
+    background-color: rgba(47, 135, 235, 0.8); /* 紫色 */
+}
+
+.no-attr {
+    background-color: rgba(200, 200, 200, 0.6);
+    color: #333;
+}
+
+.category-link {
+    transition: color 0.2s ease-in-out;
+}
+
+.category-link:hover {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+.product-categories i {
+    font-size: 0.85rem;
+}
     </style>
 {% endblock %}
 
