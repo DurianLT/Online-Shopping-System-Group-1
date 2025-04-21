@@ -12,15 +12,15 @@ class AddToCartView(LoginRequiredMixin, View):
         quantity = int(request.POST.get('quantity', 1))
 
         # 检查库存
-        if quantity > product.stock:
-            messages.warning(request, f"库存不足，仅剩 {product.stock} 件。")
+        if quantity > product.stock_quantity:
+            messages.warning(request, f"库存不足，仅剩 {product.stock_quantity} 件。")
             return redirect('cart_list')
 
         cart_item, created = Cart.objects.get_or_create(user=request.user, product=product)
 
         if not created:
-            if cart_item.quantity + quantity > product.stock:
-                messages.warning(request, f"库存不足，无法添加更多。当前已加入 {cart_item.quantity} 件，最多还可添加 {product.stock - cart_item.quantity} 件。")
+            if cart_item.quantity + quantity > product.stock_quantity:
+                messages.warning(request, f"库存不足，无法添加更多。当前已加入 {cart_item.quantity} 件，最多还可添加 {product.stock_quantity - cart_item.quantity} 件。")
                 return redirect('cart_list')
             cart_item.quantity += quantity
         else:
@@ -48,9 +48,9 @@ class CartListView(LoginRequiredMixin, ListView):
 
         # 检查购物车中的商品库存
         for item in cart_items:
-            if item.product.stock <= 0:
+            if item.product.stock_quantity <= 0:
                 out_of_stock_items.append(item)
-            elif item.product.stock < item.quantity:
+            elif item.product.stock_quantity < item.quantity:
                 out_of_stock_items.append(item)
 
         # 将库存不足的商品传递给模板
@@ -83,8 +83,8 @@ class ModifyCartView(LoginRequiredMixin, View):
             cart_item.delete()
 
         elif action == 'add':
-            if cart_item.quantity + 1 > product.stock:
-                messages.warning(request, f"库存不足，最多只能购买 {product.stock} 件。")
+            if cart_item.quantity + 1 > product.stock_quantity:
+                messages.warning(request, f"库存不足，最多只能购买 {product.stock_quantity} 件。")
             else:
                 cart_item.quantity += 1
                 cart_item.save()
