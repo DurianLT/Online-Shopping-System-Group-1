@@ -69,7 +69,7 @@ class CartListView(LoginRequiredMixin, ListView):
 
         # 如果有商品库存不足，添加提醒消息
         if out_of_stock_items:
-            context['out_of_stock_message'] = "以下商品库存不足或已售罄，请修改购物车。"
+            context['out_of_stock_message'] = "The following products are out of stock or sold out, please modify the shopping cart."
 
         return context
 
