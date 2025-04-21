@@ -173,7 +173,7 @@ class AddProductView(MerchantRequiredMixin, CreateView):
                         value=value.strip()
                     )
 
-            messages.success(self.request, "商品添加成功！")
+            messages.success(self.request, "The product has been added successfully!")
             return response
 
     def get_context_data(self, **kwargs):
@@ -368,7 +368,7 @@ class EditProductView(MerchantRequiredMixin, UpdateView):
                     key, value = tag.split(":", 1)
                     ProductAttribute.objects.create(product=product, key=key.strip(), value=value.strip())
 
-            messages.success(request, "商品信息已更新！")
+            messages.success(request, "The product information has been updated!")
             return redirect(self.success_url)
 
 
@@ -392,11 +392,11 @@ class ShipOrderView(MerchantRequiredMixin, View):
         order = get_object_or_404(Order, id=self.kwargs["order_id"], seller=request.user)
 
         if order.status != "Paid":
-            messages.error(request, "只能发货已支付的订单")
+            messages.error(request, "Only orders that have already been paid for can be shipped.")
         else:
             order.status = "Shipped"
             order.save()
-            messages.success(request, f"订单 #{order.id} 已标记为 '已发货'")
+            messages.success(request, f"Order #{order.id} Marked as 'shipped'")
 
         return redirect("merchant:order_detail", order_id=order.id)
 
@@ -410,7 +410,7 @@ class DeleteProductView(MerchantRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         product = get_object_or_404(Product, id=kwargs["product_id"], user=request.user)
         product.soft_delete()
-        messages.success(request, "商品已成功删除（软删除）")
+        messages.success(request, "The item was successfully deleted (soft deleted)")
         return redirect("merchant:product_list")
 
     def get(self, request, *args, **kwargs):
@@ -430,9 +430,9 @@ def approve_refund(request, order_id):
     if order.status == 'Refunding':
         order.status = 'Refunded'
         order.save()
-        messages.success(request, "退款已批准，订单已退款。")
+        messages.success(request, "The refund has been approved and the order has been refunded.")
     else:
-        messages.error(request, "当前订单状态无法执行退款操作。")
+        messages.error(request, "Refund operations cannot be performed on the current order status.")
 
     return redirect('merchant:order_detail', order_id=order.id)
 
@@ -444,9 +444,9 @@ def reject_refund(request, order_id):
     if order.status == 'Refunding':
         order.status = 'Shipped'
         order.save()
-        messages.info(request, "退款请求被拒绝，订单恢复到已发货状态。")
+        messages.info(request, "The refund request is denied and the order is restored to the shipped state.")
     else:
-        messages.error(request, "当前订单状态无法拒绝退款。")
+        messages.error(request, "Refunds cannot be denied in the current order status.")
 
     return redirect('merchant:order_detail', order_id=order.id)
 

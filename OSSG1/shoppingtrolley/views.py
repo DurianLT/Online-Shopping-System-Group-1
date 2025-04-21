@@ -13,14 +13,14 @@ class AddToCartView(LoginRequiredMixin, View):
 
         # 检查库存
         if quantity > product.stock_quantity:
-            messages.warning(request, f"库存不足，仅剩 {product.stock_quantity} 件。")
+            messages.warning(request, f"The stock is low, only {product.stock_quantity} piece remains.")
             return redirect('cart_list')
 
         cart_item, created = Cart.objects.get_or_create(user=request.user, product=product)
 
         if not created:
             if cart_item.quantity + quantity > product.stock_quantity:
-                messages.warning(request, f"库存不足，无法添加更多。当前已加入 {cart_item.quantity} 件，最多还可添加 {product.stock_quantity - cart_item.quantity} 件。")
+                messages.warning(request, f"Not enough stock to add more. Currently,  {cart_item.quantity} piece has been added, and up to {product.stock_quantity - cart_item.quantity} pieces can be added to")
                 return redirect('cart_list')
             cart_item.quantity += quantity
         else:
@@ -84,7 +84,7 @@ class ModifyCartView(LoginRequiredMixin, View):
 
         elif action == 'add':
             if cart_item.quantity + 1 > product.stock_quantity:
-                messages.warning(request, f"库存不足，最多只能购买 {product.stock_quantity} 件。")
+                messages.warning(request, f"If you don't have enough stock, you can only buy up to {product.stock_quantity} piece.")
             else:
                 cart_item.quantity += 1
                 cart_item.save()

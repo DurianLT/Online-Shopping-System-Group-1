@@ -54,7 +54,7 @@ class RegisterView(CreateView):
         """
         user = form.save()  # 保存新用户
         login(self.request, user)  # 自动登录用户
-        messages.success(self.request, f"欢迎 {user.username}，您的账号已成功注册！")
+        messages.success(self.request, f"Welcome {user.username},Your account has been successfully registered！")
         return redirect(self.success_url)  # 跳转到主页或其他页面
 
     def form_invalid(self, form):
@@ -63,7 +63,7 @@ class RegisterView(CreateView):
         1. 记录错误信息
         2. 渲染注册页面并返回错误信息
         """
-        messages.error(self.request, "注册失败，请检查输入信息并重试。")
+        messages.error(self.request, "Registration failed, please check the input information and try again.")
         return self.render_to_response(self.get_context_data(form=form))
 # 用户中心
 from django.views.generic import DetailView
@@ -116,24 +116,24 @@ class PasswordResetByUsernameView(View):
         new_password2 = request.POST.get('new_password2')
 
         if not username or not new_password1 or not new_password2:
-            messages.error(request, "所有字段都是必填的！")
+            messages.error(request, "All fields are mandatory!")
             return render(request, 'users/password_reset_by_username.html')
 
         if new_password1 != new_password2:
-            messages.error(request, "新密码和确认密码不一致！")
+            messages.error(request, "The new password and the confirmed password are inconsistent!")
             return render(request, 'users/password_reset_by_username.html')
 
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            messages.error(request, "该用户名不存在！")
+            messages.error(request, "The username doesn't exist!")
             return render(request, 'users/password_reset_by_username.html')
 
         # 设置新密码并保存
         user.set_password(new_password1)
         user.save()
 
-        messages.success(request, "密码已成功重置！")
+        messages.success(request, "The password has been reset successfully!")
         return redirect('login')  # 重定向到登录页面
 
 User = get_user_model()
@@ -150,7 +150,7 @@ class UserProfileUpdateView(UpdateView):
 
     # 更新成功后重定向至用户中心
     def get_success_url(self):
-        messages.success(self.request, "个人信息更新成功！")
+        messages.success(self.request, "Personal information updated successfully!")
         return reverse('product-list')  # 返回URL字符串，重定向到用户中心页面
 
     # 重写form_valid方法，确保表单数据处理正确

@@ -66,14 +66,14 @@ def order_from_cart(request):
     if request.method == "POST":
         address_id = request.POST.get("address_id")
         if not address_id:
-            messages.error(request, "请选择收货地址！")
+            messages.error(request, "Please select a shipping address!")
             return redirect("orders:confirm_order")
 
         selected_address = get_object_or_404(Address, id=address_id, user=request.user)
         cart_items = Cart.objects.filter(user=request.user).select_related("product__pricing", "product__user")
 
         if not cart_items.exists():
-            messages.warning(request, "购物车为空，请添加商品后再结账！")
+            messages.warning(request, "The shopping cart is empty, please add items before checking out!")
             return redirect("cart")
 
         orders_by_seller = {}
@@ -110,7 +110,7 @@ def order_from_cart(request):
             # 清空对应卖家的购物车项
             Cart.objects.filter(user=request.user, product__user=seller).delete()
 
-        messages.success(request, "订单创建成功！")
+        messages.success(request, "The order has been created!")
         return redirect("order_list")
 
 
@@ -123,7 +123,7 @@ def checkout_single_product(request, product_id):
     try:
         quantity = int(quantity)
     except ValueError:
-        messages.error(request, "无效的商品数量")
+        messages.error(request, "The number of invalid units")
         return redirect("product-detail", pk=product.id)
 
     price = get_current_price(product)
@@ -151,13 +151,13 @@ def order_single_product(request, product_id):
         quantity = request.POST.get("quantity", 1)
 
         if not address_id:
-            messages.error(request, "请选择收货地址！")
+            messages.error(request, "Please select a shipping address!")
             return redirect("orders:checkout_single_product", product_id=product.id)
 
         try:
             quantity = int(quantity)
         except ValueError:
-            messages.error(request, "无效的商品数量")
+            messages.error(request, "The number of invalid units")
             return redirect("orders:checkout_single_product", product_id=product.id)
 
         price = get_current_price(product)
@@ -185,7 +185,7 @@ def order_single_product(request, product_id):
         order.status = "Paid"
         order.save()
 
-        messages.success(request, "订单创建成功！")
+        messages.success(request, "The order has been created!")
         return redirect("order_list")
 
 from django.core.paginator import Paginator
@@ -255,9 +255,9 @@ def request_refund(request, order_id):
     if order.status in ['Paid', 'Shipped']:
         order.status = 'Refunding'
         order.save()
-        messages.success(request, "退款申请已提交，等待商家处理。")
+        messages.success(request, "The refund request has been submitted and is awaiting processing by the merchant.")
     else:
-        messages.error(request, "当前订单状态无法申请退款。")
+        messages.error(request, "Refunds cannot be requested for the current order status.。")
 
     return redirect('order_detail', order_id=order.id)
 
@@ -267,5 +267,5 @@ def confirm_receipt(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user, status="Shipped")
     order.status = "Completed"
     order.save()
-    messages.success(request, "订单已确认收货")
+    messages.success(request, "The order has been confirmed")
     return redirect("order_detail", order_id=order.id)

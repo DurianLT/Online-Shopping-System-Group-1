@@ -33,7 +33,7 @@ class DeleteReviewView(View):
     def post(self, request, pk):
         review = get_object_or_404(Review, pk=pk)
         review.delete()
-        messages.success(request, "评论已删除")
+        messages.success(request, "The comment was deleted")
         return redirect("adminpanel:dashboard")
 
 
@@ -42,7 +42,7 @@ class SoftDeleteProductView(View):
     def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
         product.soft_delete()
-        messages.success(request, f"已软删除商品：{product.name}")
+        messages.success(request, f"Soft-deleted listings:{product.name}")
         return redirect("adminpanel:dashboard")
 
 

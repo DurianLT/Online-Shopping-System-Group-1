@@ -139,13 +139,13 @@ from django.db import models
 
 class OrderStatusHistory(models.Model):
     STATUS_CHOICES = [
-        ('Pending', '待支付'),
-        ('Paid', '已支付'),
-        ('Shipped', '已发货'),
-        ('Completed', '已完成'),
-        ('Cancelled', '已取消'),
-        ('Refunding', '退款中'),  # 新增退款中状态
-        ('Refunded', '已退款'),  # 新增已退款状态
+        ('Pending', 'Pending'),
+        ('Paid', 'Paid'),
+        ('Shipped', 'Shipped'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+        ('Refunding', 'Refundin'),  # 新增退款中状态
+        ('Refunded', 'Refunded'),  # 新增已退款状态
     ]
 
     order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name="status_histories")
