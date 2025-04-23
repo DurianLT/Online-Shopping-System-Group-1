@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}管理标签{% endblock %}
+{% block title %}Manage Tags{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="text-center mb-4">管理推荐标签</h1>
+    <h1 class="text-center mb-4">Manage Recommended Tags</h1>
+    <div class="mb-4 d-flex flex-wrap gap-2">
+        <!-- 返回最新评论界面 -->
+        <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-outline-secondary">🔁 Back to Recent Reviews</a>
+
+        <!-- 管理标签 -->
+        <a href="{% url 'adminpanel:manage_tags' %}" class="btn btn-outline-primary">🏷️ Manage Tags</a>
+    </div>
 
     {% for category in categories %}
         <div class="card mb-4">
@@ -20,12 +27,12 @@
                             <form method="POST" action="{% url 'adminpanel:delete_tag' tag.id %}" class="d-inline-block">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash-alt"></i> 删除
+                                    <i class="fas fa-trash-alt"></i> Delete
                                 </button>
                             </form>
                         </li>
                     {% empty %}
-                        <li class="list-group-item">暂无标签</li>
+                        <li class="list-group-item">No tags available.</li>
                     {% endfor %}
                 </ul>
 
@@ -33,9 +40,9 @@
                 <form method="POST" action="{% url 'adminpanel:add_tag' category.id %}">
                     {% csrf_token %}
                     <div class="input-group">
-                        <input type="text" name="tag_name" class="form-control" placeholder="请输入新标签" required>
+                        <input type="text" name="tag_name" class="form-control" placeholder="Enter new tag" required>
                         <button class="btn btn-success" type="submit">
-                            <i class="fas fa-plus"></i> 添加标签
+                            <i class="fas fa-plus"></i> Add Tag
                         </button>
                     </div>
                 </form>

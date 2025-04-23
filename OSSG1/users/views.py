@@ -108,14 +108,15 @@ class UserProfileView(DetailView):
 
 class PasswordResetByUsernameView(View):
     def get(self, request):
-        return render(request, 'users/password_reset_by_username.html')  # 返回一个简单的表单页面
+        return render(request, 'users/password_reset_by_username.html')
 
     def post(self, request):
         username = request.POST.get('username')
+        email = request.POST.get('email')  # 新增邮箱字段
         new_password1 = request.POST.get('new_password1')
         new_password2 = request.POST.get('new_password2')
 
-        if not username or not new_password1 or not new_password2:
+        if not username or not email or not new_password1 or not new_password2:
             messages.error(request, "All fields are mandatory!")
             return render(request, 'users/password_reset_by_username.html')
 
@@ -129,12 +130,17 @@ class PasswordResetByUsernameView(View):
             messages.error(request, "The username doesn't exist!")
             return render(request, 'users/password_reset_by_username.html')
 
+        if user.email != email:
+            messages.error(request, "The email does not match the username!")
+            return render(request, 'users/password_reset_by_username.html')
+
         # 设置新密码并保存
         user.set_password(new_password1)
         user.save()
 
         messages.success(request, "The password has been reset successfully!")
-        return redirect('login')  # 重定向到登录页面
+        return redirect('login')
+
 
 User = get_user_model()
 

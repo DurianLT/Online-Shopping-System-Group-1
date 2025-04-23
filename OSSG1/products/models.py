@@ -70,6 +70,12 @@ class Product(models.Model):
         self.is_deleted = True
         self.save()
 
+    @property
+    def reviews(self):
+        # 获取该商品下所有订单项的评论
+        from users.models import Review
+        return Review.objects.filter(order_item__product=self).select_related('user', 'order_item').order_by(
+            "-created_at")
 
 
 class ProductAttribute(models.Model):

@@ -9,25 +9,35 @@ from staff.form import AddTagForm
 from users.models import Review
 
 
+from django.db.models import Q
+
 @method_decorator(user_passes_test(lambda u: u.is_staff), name='dispatch')
 class AdminDashboardView(TemplateView):
     template_name = "staff/home.html"
 
     def get(self, request, *args, **kwargs):
-        product_id = request.GET.get("product_id")
-        if product_id:
-            reviews = Review.objects.filter(order_item__product_id=product_id).order_by("-created_at")
+        query = request.GET.get("product_id_or_name", "").strip()
+        product_mode = False
+        selected_products = []
+
+        if query:
+            product_mode = True
+            if query.isdigit():
+                selected_products = Product.objects.filter(id=query, is_deleted=False)
+            else:
+                selected_products = Product.objects.filter(name__icontains=query, is_deleted=False)
         else:
-            reviews = Review.objects.select_related('order_item', 'user').order_by("-created_at")[:20]
+            # 默认首页展示最新 20 条评论
+            recent_reviews = Review.objects.select_related('user', 'order_item__product') \
+                                           .filter(order_item__product__is_deleted=False) \
+                                           .order_by("-created_at")[:20]
 
-        products = Product.objects.filter(is_deleted=False)
         return render(request, self.template_name, {
-            "reviews": reviews,
-            "products": products,
-            "product_filter": product_id,
+            "query": query,
+            "products": selected_products if product_mode else Product.objects.none(),
+            "recent_reviews": None if product_mode else recent_reviews,
+            "product_mode": product_mode,
         })
-
-
 class DeleteReviewView(View):
     @method_decorator(user_passes_test(lambda u: u.is_staff))
     def post(self, request, pk):
