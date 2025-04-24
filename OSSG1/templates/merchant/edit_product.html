@@ -274,12 +274,13 @@
                         {% if product_image.is_primary %}
                             <div class="image-item" id="primary-image">
                                 <div class="card">
-                                    <img src="{{ product_image.image.url }}" class="card-img-top" alt="主图" style="width: 200px; height: 200px; object-fit: contain;">
+                                    <img src="{{ product_image.image.url }}" class="card-img-top" alt="Main Image" style="width: 200px; height: 200px; object-fit: contain;">
                                     <div class="card-body p-2">
                                         <label for="replace-primary-image" class="btn btn-sm btn-outline-primary w-100">
                                             <i class="bi bi-arrow-repeat me-1"></i>Replace the main image
                                         </label>
-                                        <input type="file" name="replace_primary_image" class="d-none" id="replace-primary-image">
+                                        <input type="file" name="replace_primary_image" class="d-none" id="replace-primary-image" 
+                                            accept="image/*" onchange="handlePrimaryImageChange(this)">
                                     </div>
                                 </div>
                             </div>
@@ -567,6 +568,38 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 3000);
     }
 });
+function handlePrimaryImageChange(input) {
+    const statusElement = document.getElementById('primary-image-upload-status');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        
+        // 验证文件类型
+        if (!validTypes.includes(file.type)) {
+            statusElement.textContent = 'Error: Only JPG, PNG or GIF images are allowed';
+            statusElement.className = 'mt-2 small text-danger';
+            return;
+        }
+        
+        // 验证文件大小
+        if (file.size > maxSize) {
+            statusElement.textContent = 'Error: Image size should not exceed 5MB';
+            statusElement.className = 'mt-2 small text-danger';
+            return;
+        }
+        
+        // 预览图片
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.querySelector('#primary-image-container img').src = e.target.result;
+            statusElement.textContent = 'New image selected. Click "Save changes" to confirm.';
+            statusElement.className = 'mt-2 small text-success';
+        };
+        reader.readAsDataURL(file);
+    }
+}
 </script>
 
 <style>
