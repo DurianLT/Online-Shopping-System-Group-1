@@ -75,6 +75,13 @@
             margin-bottom: 20px;
             border-radius: 5px;
         }
+        .btn[disabled] {
+            background-color: #adb5bd !important;
+            border-color: #adb5bd !important;
+            cursor: not-allowed;
+            pointer-events: all !important;
+        }
+        
     </style>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
 {% endblock %}
@@ -180,9 +187,15 @@
                             <span>Total Amount:</span>
                             <span class="fw-bold fs-5 text-danger">¥{{ total_price }}</span>
                         </div>
-                        <a href="{% url 'confirm_order' %}" class="btn btn-primary w-100 py-2">
-                            <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
-                        </a>
+                        {% if out_of_stock_items %}
+                            <button class="btn btn-secondary w-100 py-2" disabled>
+                                <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+                            </button>
+                        {% else %}
+                            <a href="{% url 'confirm_order' %}" class="btn btn-primary w-100 py-2">
+                                <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+                            </a>
+                        {% endif %}
                         <a href="{% url 'product-list' %}" class="btn btn-outline-secondary w-100 mt-2 py-2">
                             <i class="bi bi-arrow-left me-2"></i>Continue Shopping
                         </a>
